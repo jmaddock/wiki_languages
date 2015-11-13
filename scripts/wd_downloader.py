@@ -10,7 +10,6 @@ class WD_Downloader(object):
     def make_dirs(self):
         for lang in self.langs:
             new_dir = r'%s/%s' % (self.target_dir,lang)
-            print(new_dir)
             if not os.path.exists(new_dir):
                 print('creating dir: %s' % new_dir)
                 os.makedirs(new_dir)
@@ -31,14 +30,17 @@ class WD_Downloader(object):
                 print('target file: %s' % target_file)
                 try:
                     wd.retrieve(base_url,target_file)
-                    counter += 1
-                except IOError:
-                    exit_loop = True
 
+                except IOError:
+                    if counter > 0:
+                        exit_loop = True
+                counter += 1
+
+    # TODO: parse langs from top langs csv
     def parse_langs(self,lang_file,limit):
         return None
 
-langs = ['sv','de','nl','fr']
+langs = ['de','nl','fr']
 target_dir = r'/Volumes/SupahFast2/jim/wiki_11_13_2015'
 
 d = WD_Downloader(target_dir,langs)
