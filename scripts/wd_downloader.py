@@ -16,6 +16,7 @@ class WD_Downloader(object):
     def download(self,file_type='current'):
         wd = urllib.URLopener()
         for lang in self.langs:
+            print('downloading %s' % lang)
             counter = 0
             exit_loop = False
             while not exit_loop:
@@ -24,6 +25,8 @@ class WD_Downloader(object):
                 else:
                     base_url = r'https://dumps.wikimedia.org/%swiki/latest/%swiki-latest-pages-meta-%s%s.xml.bz2' % (lang,lang,file_type,counter)
                 target_file = r'%s/%s/%swiki-latest-pages-meta-%s%s.xml.bz2' % (self.target_dir,lang,lang,file_type,counter)
+                print('url: %s' % base_url)
+                print('target file: %s' % target_file)
                 try:
                     wd.retrieve(base_url,target_file)
                     counter += 1
