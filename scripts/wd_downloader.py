@@ -9,8 +9,10 @@ class WD_Downloader(object):
 
     def make_dirs(self):
         for lang in self.langs:
-            new_dir = r'%s%s' % (self.target_dir,lang)
+            new_dir = r'%s/%s' % (self.target_dir,lang)
+            print(new_dir)
             if not os.path.exists(new_dir):
+                print('creating dir: %s' % new_dir)
                 os.makedirs(new_dir)
 
     def download(self,file_type='current'):
@@ -21,10 +23,10 @@ class WD_Downloader(object):
             exit_loop = False
             while not exit_loop:
                 if counter == 0:
-                    base_url = r'https://dumps.wikimedia.org/%swiki/latest/%swiki-latest-pages-meta-%s.xml.bz2' % (lang,lang,file_type)
+                    base_url = r'https://dumps.wikimedia.org/%swiki/latest/%swiki-latest-pages-meta-%s.xml.7z' % (lang,lang,file_type)
                 else:
-                    base_url = r'https://dumps.wikimedia.org/%swiki/latest/%swiki-latest-pages-meta-%s%s.xml.bz2' % (lang,lang,file_type,counter)
-                target_file = r'%s/%s/%swiki-latest-pages-meta-%s%s.xml.bz2' % (self.target_dir,lang,lang,file_type,counter)
+                    base_url = r'https://dumps.wikimedia.org/%swiki/latest/%swiki-latest-pages-meta-%s%s.xml.7z' % (lang,lang,file_type,counter)
+                target_file = r'%s/%s/%swiki-latest-pages-meta-%s%s.xml.7z' % (self.target_dir,lang,lang,file_type,counter)
                 print('url: %s' % base_url)
                 print('target file: %s' % target_file)
                 try:
@@ -36,9 +38,9 @@ class WD_Downloader(object):
     def parse_langs(self,lang_file,limit):
         return None
 
-langs = ['de']
-target_dir = r'/Volumes/SupahFast2/jim/test'
+langs = ['sv','de','nl','fr']
+target_dir = r'/Volumes/SupahFast2/jim/wiki_11_13_2015'
 
 d = WD_Downloader(target_dir,langs)
 d.make_dirs()
-d.download()
+d.download('history')
