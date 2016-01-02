@@ -42,7 +42,7 @@ class Dump_Handler(object):
         f = r'%s.xml' % (self.base_path)
         log('opening file: %s' % f)
         self.dump = xml_dump.Iterator.from_file(codecs.open(f,'r','utf-8'))
-        return dump
+        return self.dump
 
     def decompress(self):
         f = r'%s.xml.7z' % (self.base_path)
@@ -59,7 +59,8 @@ class Dump_Handler(object):
         if self.count > 0:
             self.remove_dump()
         self.base_path = r'%s%s' % (self.base,self.count)
-        self.decompress()
+        if not os.path.exists(r'%s.xml' % (self.base_path)):
+            self.decompress()
         self.open_dump()
         self.count += 1
         
