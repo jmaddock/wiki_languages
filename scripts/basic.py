@@ -6,6 +6,7 @@ import codecs
 import re
 import os
 import datetime
+import subprocess
 
 p_user = re.compile('\[\[User:([^\s\|]+)\|')
 p_topic = re.compile('== .*? ==')
@@ -21,6 +22,45 @@ class Revert_Tracker(object):
         else:
             self.hashes.append(new_hash)
             return False
+
+class Dump_Handler(object):
+    def __init__(self,history,wiki_name):
+        if history:
+            base_path = r'/Users/klogg/research_data/wiki_dumps/dumps.wikimedia.org/%s/latest/%s-latest-pages-meta-history' % (self.wiki_name,self.wiki_name)
+        else:
+            base_path = r'/Users/klogg/research_data/wiki_dumps/dumps.wikimedia.org/%s/latest/%s-latest-pages-meta-current' % (self.wiki_name,self.wiki_name)
+        self.wiki_name
+        self.history
+        self.dump = None
+        self.count = 0
+
+    def open_dump(self):
+        f = r'%s.xml' % (self.base_path)
+        log('opening file: %s' % f)
+        self.dump = xml_dump.Iterator.from_file(codecs.open(f,'r','utf-8'))
+        return dump
+
+    def decompress(self):
+        f = r'%s.xml.7z' % (self.base_path)
+        log('decompressing file: %s' % f)
+        subprocess.call(['7z','x',f])
+
+    def remove_dump(self):
+        self.dump = None
+        f = r'%s.xml' % (self.base_path)
+        log('removing file: %s' % f)
+        subprocess.call(['rm',f])
+
+    def next_dump(self):
+        if self.count > 0:
+            self.remove_dump()
+            self.base_path = r'%s%s' % (base_path,count)
+        self.decompress()
+        self.open_dump()
+        self.count += 1
+        
+def log(text):
+    print('[%s] %s' % (str(datetime.datetime.now().time())[:-7],text))
 
 # only takes meta-current (no revision history)
 def make_user_count(page,*kwargs):
@@ -125,51 +165,56 @@ def match_edits(talk_page,wiki_name,time_delta=None):
                     results.update([rev.contributor.user_text])
     return results
 
-wiki_name = 'simplewiki'
-dump = open_dump(wiki_name)
-hdump = open_dump(wiki_name,True)
-results = xcount_per_article(hdump,
-                             wiki_name,
-                             match_edits,
-                             f_name='article_talk_edits',
-                             dl=None)
-hdump = open_dump(wiki_name,True)
-results2 = xcount_per_article(hdump,
-                              wiki_name,
-                              make_user_count_history,
-                              f_name='number_of_users',
-                              dl=None)
-print(results.most_common())
-print(results2.most_common())
+def main():
 
-'''count = 0
-user_count = Counter()
-d = Differ()
-for page in dump:
-    if page.namespace==1:
-        count += 1
-        print(page.namespace,page.title)
-        prev_lines = ['']
-        r = Revert_Tracker()
-        print(match_edits(page,wiki_name))
-        for rev in page:
-            print(r.is_revert(rev.sha1))
-            #print(text.contributor,text.sha1,text.comment)
-            lines = [x.strip() for x in re.split('\n|\.',rev.text)]
-            print(rev.contributor.user_text)
-            edit_date = datetime.datetime.fromtimestamp(rev.timestamp)
-            print(edit_date+datetime.timedelta(days=1))
-            for x in list(d.compare(prev_lines, lines)):
-                if x[:1] == '+' or x[:1] == '-':
-                    print(x)
-            prev_lines = lines
-            #user_count = user_count + make_user_count(text.text,page)
-            #split_topics(text.text)
-            print('---')
-    if count > 10:
-        break'''
-#print(len(user_count))
-#for user in user_count.most_common():
-#    print(user)'''
+    wiki_name = 'simplewiki'
+    dump = open_dump(wiki_name)
+    hdump = open_dump(wiki_name,True)
+    results = xcount_per_article(hdump,
+                                 wiki_name,
+                                 match_edits,
+                                 f_name='article_talk_edits',
+                                 dl=None)
+    hdump = open_dump(wiki_name,True)
+    results2 = xcount_per_article(hdump,
+                                  wiki_name,
+                                  make_user_count_history,
+                                  f_name='number_of_users',
+                                  dl=None)
+    print(results.most_common())
+    print(results2.most_common())
 
-print('done')
+    '''count = 0
+    user_count = Counter()
+    d = Differ()
+    for page in dump:
+        if page.namespace==1:
+            count += 1
+            print(page.namespace,page.title)
+            prev_lines = ['']
+            r = Revert_Tracker()
+            print(match_edits(page,wiki_name))
+            for rev in page:
+                print(r.is_revert(rev.sha1))
+                #print(text.contributor,text.sha1,text.comment)
+                lines = [x.strip() for x in re.split('\n|\.',rev.text)]
+                print(rev.contributor.user_text)
+                edit_date = datetime.datetime.fromtimestamp(rev.timestamp)
+                print(edit_date+datetime.timedelta(days=1))
+                for x in list(d.compare(prev_lines, lines)):
+                    if x[:1] == '+' or x[:1] == '-':
+                        print(x)
+                prev_lines = lines
+                #user_count = user_count + make_user_count(text.text,page)
+                #split_topics(text.text)
+                print('---')
+        if count > 10:
+            break'''
+    #print(len(user_count))
+    #for user in user_count.most_common():
+    #    print(user)'''
+
+    print('done')
+
+if __name__ == "__main__":
+    main()
