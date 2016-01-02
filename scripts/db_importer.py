@@ -3,6 +3,9 @@ import datetime
 import basic
 import pymongo
 
+## TO START MONGOD INSTANCE ON OMNI:
+## mongod --dbpath ~/jim/wiki_data/mongodb_data/ --fork --logpath ~/jim/wiki_data/mongodb_data/logs/mongodb.log
+
 class Db_Importer(object):
     def __init__(self,wiki_name):
         basic.log('creating importer...')
@@ -21,7 +24,7 @@ class Db_Importer(object):
         page_list = []
         while True:
             try:
-                dh.next_dump()
+                self.dh.next_dump()
                 for page in self.dh.dump:
                     if page.namespace == 1 or page.namespace == 0:
                         page_list.append(self.create_document(page))
@@ -54,11 +57,12 @@ class Db_Importer(object):
             d['rev'].append(r)
         return d
 
-    def link_documents(self):
+    def link_documents(self,v=False):
+        basic.log('creating indexes...')
         self.c.create_index([('title',pymongo.ASCENDING),
                              ('namespace',pymongo.ASCENDING)])
         talk_pages = self.c.find()
-        for p in talk_pages:
+        for i,p in enumerate(talk_pages):
             linked = self.c.find_one({'title':p.title,
                                       'namespace':{'$ne':p.namespace}})
             if linked:
@@ -68,10 +72,13 @@ class Db_Importer(object):
                 l['page_id'] = linked['page_id']
                 self.c.update({'id':p['id']},
                               {'$push':{'linked_pages':l}})
+            if i % 1000 == 0:
+                basic.log('processed %s documents' % i)
 
 def main():
-    dbi = Db_Importer('simplewiki')
+    dbi = Db_Importer('sv')
     dbi.insert_from_dump(v=True)
+    dbi.link_documents()
                 
 if __name__ == "__main__":
     main()

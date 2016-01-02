@@ -24,15 +24,17 @@ class Revert_Tracker(object):
             return False
 
 class Dump_Handler(object):
-    def __init__(self,history,wiki_name):
+    def __init__(self,wiki_name,history):
+        self.base_dir = r'/Volumes/SupahFast2/jim/wiki_11_13_2015/%s' % (wiki_name)
         if history:
-            #base_path = r'/Volumes/SupahFast2/jim/wiki_11_13_2015/%s/%swiki-latest-pages-meta-history.xml' % (wiki_name,wiki_name)
-            base_path = r'/Users/klogg/research_data/wiki_dumps/dumps.wikimedia.org/%s/latest/%s-latest-pages-meta-history' % (self.wiki_name,self.wiki_name)
+            self.base = r'/Volumes/SupahFast2/jim/wiki_11_13_2015/%s/%swiki-latest-pages-meta-history' % (wiki_name,wiki_name)
+            #self.base_path = r'/Users/klogg/research_data/wiki_dumps/dumps.wikimedia.org/%s/latest/%s-latest-pages-meta-history' % (self.wiki_name,self.wiki_name)
         else:
-            #base_path = r'/Volumes/SupahFast2/jim/wiki_11_13_2015/%s/%swiki-latest-pages-meta-current.xml' % (wiki_name,wiki_name)
-            base_path = r'/Users/klogg/research_data/wiki_dumps/dumps.wikimedia.org/%s/latest/%s-latest-pages-meta-current' % (self.wiki_name,self.wiki_name)
-        self.wiki_name
-        self.history
+            self.base = r'/Volumes/SupahFast2/jim/wiki_11_13_2015/%s/%swiki-latest-pages-meta-current' % (wiki_name,wiki_name)
+            #self.base_path = r'/Users/klogg/research_data/wiki_dumps/dumps.wikimedia.org/%s/latest/%s-latest-pages-meta-current' % (self.wiki_name,self.wiki_name)
+        self.base_path = None
+        self.wiki_name = wiki_name
+        self.history = history
         self.dump = None
         self.count = 0
 
@@ -45,7 +47,7 @@ class Dump_Handler(object):
     def decompress(self):
         f = r'%s.xml.7z' % (self.base_path)
         log('decompressing file: %s' % f)
-        subprocess.call(['7z','x',f])
+        subprocess.call(['7z','x',f,'-o' + self.base_dir])
 
     def remove_dump(self):
         self.dump = None
@@ -56,7 +58,7 @@ class Dump_Handler(object):
     def next_dump(self):
         if self.count > 0:
             self.remove_dump()
-            self.base_path = r'%s%s' % (base_path,count)
+        self.base_path = r'%s%s' % (self.base,self.count)
         self.decompress()
         self.open_dump()
         self.count += 1
