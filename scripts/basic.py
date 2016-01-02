@@ -26,8 +26,10 @@ class Revert_Tracker(object):
 class Dump_Handler(object):
     def __init__(self,history,wiki_name):
         if history:
+            #base_path = r'/Volumes/SupahFast2/jim/wiki_11_13_2015/%s/%swiki-latest-pages-meta-history.xml' % (wiki_name,wiki_name)
             base_path = r'/Users/klogg/research_data/wiki_dumps/dumps.wikimedia.org/%s/latest/%s-latest-pages-meta-history' % (self.wiki_name,self.wiki_name)
         else:
+            #base_path = r'/Volumes/SupahFast2/jim/wiki_11_13_2015/%s/%swiki-latest-pages-meta-current.xml' % (wiki_name,wiki_name)
             base_path = r'/Users/klogg/research_data/wiki_dumps/dumps.wikimedia.org/%s/latest/%s-latest-pages-meta-current' % (self.wiki_name,self.wiki_name)
         self.wiki_name
         self.history
