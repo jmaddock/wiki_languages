@@ -9,8 +9,7 @@ import pymongo
 class Db_Importer(object):
     def __init__(self,wiki_name):
         basic.log('creating importer...')
-        self.dh = basic.Dump_Handler(wiki_name,history=True)
-        basic.log('opened %s dump' % wiki_name)
+        self.dh = None
         self.client = pymongo.MongoClient()
         self.db = self.client['edit_history']
         self.c = self.db[wiki_name]
@@ -22,6 +21,7 @@ class Db_Importer(object):
 
     def insert_from_dump(self,v=False):
         page_list = []
+        self.dh = basic.Dump_Handler(wiki_name,history=True)
         while True:
             try:
                 self.dh.next_dump()
@@ -63,8 +63,8 @@ class Db_Importer(object):
                              ('namespace',pymongo.ASCENDING)])
         talk_pages = self.c.find()
         for i,p in enumerate(talk_pages):
-            linked = self.c.find_one({'title':p.title,
-                                      'namespace':{'$ne':p.namespace}})
+            linked = self.c.find_one({'title':p['title'],
+                                      'namespace':{'$ne':p['namespace']}})
             if linked:
                 l = {}
                 l['id'] = linked['id']
@@ -72,12 +72,12 @@ class Db_Importer(object):
                 l['page_id'] = linked['page_id']
                 self.c.update({'id':p['id']},
                               {'$push':{'linked_pages':l}})
-            if i % 1000 == 0:
+            if i % 1000 == 0 and i != 0:
                 basic.log('processed %s documents' % i)
 
 def main():
     dbi = Db_Importer('sv')
-    dbi.insert_from_dump(v=True)
+    #dbi.insert_from_dump(v=True)
     dbi.link_documents()
                 
 if __name__ == "__main__":
