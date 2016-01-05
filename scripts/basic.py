@@ -36,7 +36,7 @@ class Dump_Handler(object):
         self.wiki_name = wiki_name
         self.history = history
         self.dump = None
-        self.count = 0
+        self.count = 2 #change back to 1
 
     def open_dump(self):
         f = r'%s.xml' % (self.base_path)
@@ -56,7 +56,7 @@ class Dump_Handler(object):
         subprocess.call(['rm',f])
 
     def next_dump(self):
-        if self.count > 0:
+        if self.count > 1:
             self.remove_dump()
         self.base_path = r'%s%s' % (self.base,self.count)
         if not os.path.exists(r'%s.xml' % (self.base_path)):

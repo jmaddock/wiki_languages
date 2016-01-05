@@ -9,6 +9,7 @@ import pymongo
 class Db_Importer(object):
     def __init__(self,wiki_name):
         basic.log('creating importer...')
+        self.wiki_name = wiki_name
         self.dh = None
         self.client = pymongo.MongoClient()
         self.db = self.client['edit_history']
@@ -21,23 +22,25 @@ class Db_Importer(object):
 
     def insert_from_dump(self,v=False):
         page_list = []
-        self.dh = basic.Dump_Handler(wiki_name,history=True)
+        self.dh = basic.Dump_Handler(self.wiki_name,history=True)
         while True:
             try:
                 self.dh.next_dump()
-                for page in self.dh.dump:
-                    if page.namespace == 1 or page.namespace == 0:
-                        page_list.append(self.create_document(page))
-                        self.count += 1
-                    if len(page_list) >= 1000:
-                        self.c.insert(page_list)
-                        if v:
-                            basic.log('inserted %s documents' % self.count)
-                        page_list = []
-                self.c.insert(page_list)
             except OSError:
                 basic.log('finished import')
                 return True
+            
+            for page in self.dh.dump:
+                if page.namespace == 1 or page.namespace == 0:
+                    page_list.append(self.create_document(page).copy())
+                    self.count += 1
+                if len(page_list) >= 1000:
+                    self.c.insert(page_list)
+                    if v:
+                        basic.log('inserted %s documents' % self.count)
+                    page_list = []
+            self.c.insert(page_list)
+            page_list=[]
 
     def create_document(self,page):
         rt = basic.Revert_Tracker()
@@ -61,24 +64,34 @@ class Db_Importer(object):
         basic.log('creating indexes...')
         self.c.create_index([('title',pymongo.ASCENDING),
                              ('namespace',pymongo.ASCENDING)])
-        talk_pages = self.c.find()
+        #self.c.create_index('id')
+        talk_pages = self.c.find({'linked_pages':{'$size':0},
+                                  'namespace':1})
         for i,p in enumerate(talk_pages):
             linked = self.c.find_one({'title':p['title'],
-                                      'namespace':{'$ne':p['namespace']}})
+                                      'namespace':0})
             if linked:
-                l = {}
-                l['id'] = linked['id']
-                l['namespace'] = linked['namespace']
-                l['page_id'] = linked['page_id']
-                self.c.update({'id':p['id']},
-                              {'$push':{'linked_pages':l}})
+                l1 = {}
+                l1['id'] = linked['id']
+                l1['namespace'] = linked['namespace']
+                l1['page_id'] = linked['page_id']
+                self.c.update({'_id':p['_id']},
+                              {'$addToSet':{'linked_pages':l1}})
+                l2 = {}
+                l2['id'] = p['id']
+                l2['namespace'] = p['namespace']
+                l2['page_id'] = p['page_id']
+                self.c.update({'_id':linked['_id']},
+                              {'$addToSet':{'linked_pages':l2}})
             if i % 1000 == 0 and i != 0:
                 basic.log('processed %s documents' % i)
 
 def main():
-    dbi = Db_Importer('sv')
-    #dbi.insert_from_dump(v=True)
-    dbi.link_documents()
+    langs = ['fr',]
+    for lang in langs:
+        dbi = Db_Importer(lang)
+        dbi.insert_from_dump(v=True)
+        dbi.link_documents()
                 
 if __name__ == "__main__":
     main()

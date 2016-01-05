@@ -23,9 +23,10 @@ class WD_Downloader(object):
             while not exit_loop:
                 if counter == 0:
                     base_url = r'https://dumps.wikimedia.org/%swiki/latest/%swiki-latest-pages-meta-%s.xml.7z' % (lang,lang,file_type)
+                    target_file = r'%s/%s/%swiki-latest-pages-meta-%s%s.xml.7z' % (self.target_dir,lang,lang,file_type,(counter+1))
                 else:
                     base_url = r'https://dumps.wikimedia.org/%swiki/latest/%swiki-latest-pages-meta-%s%s.xml.7z' % (lang,lang,file_type,counter)
-                target_file = r'%s/%s/%swiki-latest-pages-meta-%s%s.xml.7z' % (self.target_dir,lang,lang,file_type,counter)
+                    target_file = r'%s/%s/%swiki-latest-pages-meta-%s%s.xml.7z' % (self.target_dir,lang,lang,file_type,counter)
                 print('url: %s' % base_url)
                 print('target file: %s' % target_file)
                 try:
