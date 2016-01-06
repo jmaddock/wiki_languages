@@ -95,10 +95,10 @@ class Db_Importer(object):
         basic.write_log('linked %s documents' % j)
 
 def main():
-    langs = ['simplewiki',]
+    langs = ['simple',]
     for lang in langs:
         dbi = Db_Importer(lang)
-        #dbi.insert_from_dump(v=True)
+        dbi.insert_from_dump(v=True)
         dbi.link_documents()
                 
 if __name__ == "__main__":

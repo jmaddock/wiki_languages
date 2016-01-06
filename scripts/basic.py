@@ -36,12 +36,12 @@ class Dump_Handler(object):
         self.wiki_name = wiki_name
         self.history = history
         self.dump = None
-        self.count = 2 #change back to 1
+        self.count = 1 #change back to 1
 
     def open_dump(self):
         f = r'%s.xml' % (self.base_path)
         log('opening file: %s' % f)
-        write_loglog('opening file: %s' % f)
+        write_log('opening file: %s' % f)
         self.dump = xml_dump.Iterator.from_file(codecs.open(f,'r','utf-8'))
         return self.dump
 
@@ -67,10 +67,12 @@ class Dump_Handler(object):
         self.open_dump()
         self.count += 1
         
-def log(text):
+def log(text,log_file=None):
     print('[%s] %s' % (str(datetime.datetime.now().time())[:-7],text))
+    if log_file:
+        write_log(text)
 
-def write_log(text,f_name=log.txt):
+def write_log(text,f_name='log.txt'):
     f_path = os.path.join(os.path.dirname(__file__),os.pardir,'logs/') + f_name
     f = open(f_path, 'a')
     out = '[%s] %s\n' % (str(datetime.datetime.now().time())[:-7],text)
