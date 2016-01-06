@@ -41,18 +41,21 @@ class Dump_Handler(object):
     def open_dump(self):
         f = r'%s.xml' % (self.base_path)
         log('opening file: %s' % f)
+        write_loglog('opening file: %s' % f)
         self.dump = xml_dump.Iterator.from_file(codecs.open(f,'r','utf-8'))
         return self.dump
 
     def decompress(self):
         f = r'%s.xml.7z' % (self.base_path)
         log('decompressing file: %s' % f)
+        write_log('decompressing file: %s' % f)
         subprocess.call(['7z','x',f,'-o' + self.base_dir])
 
     def remove_dump(self):
         self.dump = None
         f = r'%s.xml' % (self.base_path)
         log('removing file: %s' % f)
+        write_log('removing file: %s' % f)
         subprocess.call(['rm',f])
 
     def next_dump(self):
@@ -66,6 +69,13 @@ class Dump_Handler(object):
         
 def log(text):
     print('[%s] %s' % (str(datetime.datetime.now().time())[:-7],text))
+
+def write_log(text,f_name=log.txt):
+    f_path = os.path.join(os.path.dirname(__file__),os.pardir,'logs/') + f_name
+    f = open(f_path, 'a')
+    out = '[%s] %s\n' % (str(datetime.datetime.now().time())[:-7],text)
+    f.write(out)
+    f.close()
 
 # only takes meta-current (no revision history)
 def make_user_count(page,*kwargs):

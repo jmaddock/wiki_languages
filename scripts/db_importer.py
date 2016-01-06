@@ -27,7 +27,8 @@ class Db_Importer(object):
             try:
                 self.dh.next_dump()
             except OSError:
-                basic.log('finished import')
+                basic.log('file does not exist (import finished?), exiting importer...')
+                basic.write_log('file does not exist (import finished?), exiting importer...')
                 return True
             
             for page in self.dh.dump:
@@ -41,6 +42,7 @@ class Db_Importer(object):
                     page_list = []
             self.c.insert(page_list)
             page_list=[]
+            basic.write_log('inserted %s documents' % self.count)
 
     def create_document(self,page):
         rt = basic.Revert_Tracker()
@@ -67,7 +69,9 @@ class Db_Importer(object):
         #self.c.create_index('id')
         talk_pages = self.c.find({'linked_pages':{'$size':0},
                                   'namespace':1})
-        for i,p in enumerate(talk_pages):
+        i = 0
+        j = 0
+        for p in talk_pages:
             linked = self.c.find_one({'title':p['title'],
                                       'namespace':0})
             if linked:
@@ -83,14 +87,18 @@ class Db_Importer(object):
                 l2['page_id'] = p['page_id']
                 self.c.update({'_id':linked['_id']},
                               {'$addToSet':{'linked_pages':l2}})
+                j += 1
+            i += 1
             if i % 1000 == 0 and i != 0:
                 basic.log('processed %s documents' % i)
+        basic.write_log('processed %s documents' % i)
+        basic.write_log('linked %s documents' % j)
 
 def main():
-    langs = ['fr',]
+    langs = ['simplewiki',]
     for lang in langs:
         dbi = Db_Importer(lang)
-        dbi.insert_from_dump(v=True)
+        #dbi.insert_from_dump(v=True)
         dbi.link_documents()
                 
 if __name__ == "__main__":
