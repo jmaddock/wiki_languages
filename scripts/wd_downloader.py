@@ -42,7 +42,8 @@ class WD_Downloader(object):
         return None
 
 langs = ['de','nl','fr']
-target_dir = r'/Volumes/SupahFast2/jim/wiki_11_13_2015'
+target_dir = os.path.join(os.path.dirname(__file__),os.pardir,'data/')
+#target_dir = r'/Volumes/SupahFast2/jim/wiki_11_13_2015'
 
 d = WD_Downloader(target_dir,langs)
 d.make_dirs()

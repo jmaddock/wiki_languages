@@ -25,12 +25,15 @@ class Revert_Tracker(object):
 
 class Dump_Handler(object):
     def __init__(self,wiki_name,history):
-        self.base_dir = r'/Volumes/SupahFast2/jim/wiki_11_13_2015/%s' % (wiki_name)
+        self.base_dir = os.path.join(os.path.dirname(__file__),os.pardir,'data/') + wiki_name
+        #self.base_dir = r'/Volumes/SupahFast2/jim/wiki_11_13_2015/%s' % (wiki_name)
         if history:
-            self.base = r'/Volumes/SupahFast2/jim/wiki_11_13_2015/%s/%swiki-latest-pages-meta-history' % (wiki_name,wiki_name)
+            self.base = '%s/%swiki-latest-pages-meta-history' % (self.base_dir,wiki_name)
+            #self.base = r'/Volumes/SupahFast2/jim/wiki_11_13_2015/%s/%swiki-latest-pages-meta-history' % (wiki_name,wiki_name)
             #self.base_path = r'/Users/klogg/research_data/wiki_dumps/dumps.wikimedia.org/%s/latest/%s-latest-pages-meta-history' % (self.wiki_name,self.wiki_name)
         else:
-            self.base = r'/Volumes/SupahFast2/jim/wiki_11_13_2015/%s/%swiki-latest-pages-meta-current' % (wiki_name,wiki_name)
+            self.base = '%s/%swiki-latest-pages-meta-current' % (self.base_dir,wiki_name)
+            #self.base = r'/Volumes/SupahFast2/jim/wiki_11_13_2015/%s/%swiki-latest-pages-meta-current' % (wiki_name,wiki_name)
             #self.base_path = r'/Users/klogg/research_data/wiki_dumps/dumps.wikimedia.org/%s/latest/%s-latest-pages-meta-current' % (self.wiki_name,self.wiki_name)
         self.base_path = None
         self.wiki_name = wiki_name

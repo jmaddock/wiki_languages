@@ -31,7 +31,7 @@ class Db_Importer(object):
                 basic.write_log('file does not exist (import finished?), exiting importer...')
                 return True
             
-            for page in self.dh.dump:
+            for i,page in enumerate(self.dh.dump):
                 if page.namespace == 1 or page.namespace == 0:
                     page_list.append(self.create_document(page).copy())
                     self.count += 1
@@ -40,6 +40,8 @@ class Db_Importer(object):
                     if v:
                         basic.log('inserted %s documents' % self.count)
                     page_list = []
+                if i % 1000 == 0 and i != 0 and v:
+                    basic.log('processed (insert) %s documents' % i)
             self.c.insert(page_list)
             page_list=[]
             basic.write_log('inserted %s documents' % self.count)
@@ -90,12 +92,12 @@ class Db_Importer(object):
                 j += 1
             i += 1
             if i % 1000 == 0 and i != 0:
-                basic.log('processed %s documents' % i)
-        basic.write_log('processed %s documents' % i)
+                basic.log('processed (link) %s documents' % i)
+        basic.write_log('processed (link) %s documents' % i)
         basic.write_log('linked %s documents' % j)
 
 def main():
-    langs = ['simple',]
+    langs = ['nl',]
     for lang in langs:
         dbi = Db_Importer(lang)
         dbi.insert_from_dump(v=True)
