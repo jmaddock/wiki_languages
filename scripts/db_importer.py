@@ -97,7 +97,7 @@ class Db_Importer(object):
         basic.write_log('linked %s documents' % j)
 
 def main():
-    langs = ['nl',]
+    langs = ['zh','ru','pt','it','ar','ja','tr']
     for lang in langs:
         dbi = Db_Importer(lang)
         dbi.insert_from_dump(v=True)
