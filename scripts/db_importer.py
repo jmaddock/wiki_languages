@@ -1,4 +1,5 @@
 from mw import xml_dump,Timestamp
+from bson.objectid import ObjectId
 import datetime
 import basic
 import pymongo
@@ -14,10 +15,7 @@ class Db_Importer(object):
         self.client = pymongo.MongoClient()
         self.db = self.client['edit_history']
         self.c = self.db[wiki_name]
-        try:
-            self.count = self.c.find().sort('id',-1).limit(1).next()['id'] + 1
-        except StopIteration:
-            self.count = 0
+        self.count = self.c.find().count()
         basic.log('found %s documents in %s collection' % (self.count,wiki_name))
 
     def insert_from_dump(self,v=False):
@@ -33,23 +31,23 @@ class Db_Importer(object):
             
             for i,page in enumerate(self.dh.dump):
                 if page.namespace == 1 or page.namespace == 0:
-                    page_list.append(self.create_document(page).copy())
+                    page_list.append(self.create_document(page))
                     self.count += 1
                 if len(page_list) >= 1000:
-                    self.c.insert(page_list)
+                    self.c.insert_many(page_list,ordered=False)
                     if v:
                         basic.log('inserted %s documents' % self.count)
                     page_list = []
                 if i % 1000 == 0 and i != 0 and v:
                     basic.log('processed (insert) %s documents' % i)
-            self.c.insert(page_list)
+            self.c.insert_many(page_list,ordered=False)
             page_list=[]
             basic.write_log('inserted %s documents' % self.count)
 
     def create_document(self,page):
         rt = basic.Revert_Tracker()
         d = {}
-        d['id'] = self.count
+        d['_id'] = ObjectId()
         d['page_id'] = page.id
         d['namespace'] = page.namespace
         d['title'] = page.title.split(':')[-1]
@@ -97,7 +95,7 @@ class Db_Importer(object):
         basic.write_log('linked %s documents' % j)
 
 def main():
-    langs = ['zh','ru','pt','it','ar','ja','tr']
+    langs = ['zh']
     for lang in langs:
         dbi = Db_Importer(lang)
         dbi.insert_from_dump(v=True)
