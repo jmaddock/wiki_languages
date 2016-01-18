@@ -96,12 +96,32 @@ class Db_Importer(object):
         basic.write_log('processed (link) %s documents' % i)
         basic.write_log('linked %s documents' % j)
 
+    def add_rev_size(self,v=False):
+        pages = self.c.find()
+        count = 0
+        for p in pages:
+            revert = len(p['rev'])
+            no_revert = 0
+            for rev in p['rev']:
+                if not rev['revert']:
+                    no_revert += 1
+            size = {'revert':revert,
+                    'no_revert':no_revert}
+            self.c.update({'_id':p['_id']},
+                          {'$set':{'rev_len':size}})
+            count += 1
+            if count % 1000 == 0 and count != 0 and v:
+                basic.log('updated (rev len) %s documents' % count)
+        if v:
+            basic.log('updated (rev len) %s documents' % count)
+            
 def main():
-    langs = ['zh','ru','pt','it','ar','ja','tr']
+    langs = ['simple']
     for lang in langs:
         dbi = Db_Importer(lang)
-        dbi.insert_from_dump(v=True)
-        dbi.link_documents()
+        #dbi.insert_from_dump(v=True)
+        #dbi.link_documents()
+        dbi.add_rev_size(v=True)
                 
 if __name__ == "__main__":
     main()

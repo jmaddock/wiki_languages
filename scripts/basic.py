@@ -113,8 +113,16 @@ def split_topics(page,*kwargs):
 
 def write_to_results(f_name):
     f_path = os.path.join(os.path.dirname(__file__),os.pardir,'results/') + f_name
-    f = open(f_path, 'w')
+    f = codecs.open(f_path,'w','utf-8')
     return f
+
+def results_path(subdir=None):
+    if subdir:
+        subdir = r'results/' + subdir
+    else:
+        subdir = r'results/'
+    f_path = os.path.join(os.path.dirname(__file__),os.pardir,subdir)
+    return f_path
 
 def open_dump(wiki_name,history=False):
     if history:
