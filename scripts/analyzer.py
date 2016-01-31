@@ -4,11 +4,14 @@ from collections import Counter,defaultdict
 from pandas import DataFrame
 
 class Analyzer(object):
-    def __init__(self,langs):
+    def __init__(self,langs,namespace=['a','t','at'],revert=['revert','no_revert']):
         self.client = pymongo.MongoClient()
         self.db = self.client['edit_history']
         self.langs = langs
+        self.namespace = namespace
+        self.revert = revert
 
+    ## DEPRECIATED
     def total_talk_vs_article(self,revert=True):
         f = basic.write_to_results('total_talk_vs_article.csv')
         header = '"lang","total","article","talk"\n'
@@ -32,6 +35,7 @@ class Analyzer(object):
         f.close()
         return result
 
+    ## DEPRECIATED
     def mean_talk_vs_article_edits(self,revert=True):
         f = basic.write_to_results('mean_talk_vs_article_edits.csv')
         header = '"lang","a+t_total","a+t_average ","article_total","article_average","talk_total","talk_average"\n'
@@ -79,6 +83,7 @@ class Analyzer(object):
         f.close()
         return result
 
+    ## DEPRECIATED
     def median_talk_vs_article_edits(self,revert=True):
         f = basic.write_to_results('median_talk_vs_article_edits.csv')
         header = '"lang","a+t_total","a+t_median","article_total","article_median","talk_total","talk_median"\n'
@@ -133,14 +138,12 @@ class Analyzer(object):
         f.close()
         return result
 
-    def edit_statistics(self,statistics):
+    def edit_statistics(self,statistics,v=False):
         statistics.append('total')
         f = basic.write_to_results('median_talk_vs_article_edits.csv')
-        namespace = ['a','t','at']
-        revert = ['revert','no_revert']
         header = '"lang"'
-        for n in namespace:
-            for r in revert:
+        for n in self.namespace:
+            for r in self.revert:
                 for s in statistics:    
                     header = header + ((',"%s_%s_%s"') % (n,s,r))
         header = header + '\n'
@@ -153,18 +156,18 @@ class Analyzer(object):
             total = pages.count()
             df = DataFrame({'len':[],'revert':[],'namespace':[]})
             for i,p in enumerate(pages):
-                for r in revert:
+                for r in self.revert:
                     df = df.append(DataFrame({
                         'len':[p['rev_len'][r]],
-                        'revert':[revert.index(r)],
+                        'revert':[self.revert.index(r)],
                         'namespace':[p['namespace']]
                     }))
-                if i % 1000 == 0 and i != 0:
+                if i % 1000 == 0 and i != 0 and v:
                     basic.log('processed %s/%s documents' % (i,total))
             print(df)
-            for n in namespace:
+            for n in self.namespace:
                 result[lang][n] = defaultdict(dict)
-                for r in revert:
+                for r in self.revert:
                     result[lang][n][r] = defaultdict(dict)
                     basic.log('%s %s %s' % (lang,n,r))
                     for s in statistics:
@@ -185,25 +188,23 @@ class Analyzer(object):
         return result
 
     
-    def edit_histogram(self,plot=True):
-        namespace = ['a']#,'t','at']
-        revert = ['revert']#,'no_revert']
+    def edit_histogram(self,plot=True,v=False):
         for lang in self.langs:
             pages = self.db[lang].find({'rev_len.no_revert':{'$gt':1}}).limit(10)
             total = pages.count()
             df = DataFrame({'len':[],'revert':[],'namespace':[]})
             for i,p in enumerate(pages):
-                for r in revert:
+                for r in self.revert:
                     df = df.append(DataFrame({
                         'len':[p['rev_len'][r]],
                         'revert':[revert.index(r)],
                         'namespace':[p['namespace']]
                     }))
-                if i % 1000 == 0 and i != 0:
+                if i % 1000 == 0 and i != 0 and v:
                     basic.log('processed %s/%s documents' % (i,total))
             print(df)
-            for n in namespace:
-                for r in revert:
+            for n in self.namespace:
+                for r in self.revert:
                     basic.log('%s %s %s' % (lang,n,r))
                     result = df.loc[(df['namespace'] == namespace.index(n)) & (df['revert'] == revert.index(r)),'len'].value_counts()
                     result.to_csv(basic.results_path('/distributions/%s_%s_%s.csv' % (lang,n,r)),encoding='utf-8')
