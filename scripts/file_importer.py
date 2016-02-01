@@ -109,7 +109,7 @@ class File_Importer(object):
         if v:
             print(result)
         result_path = '%s/linked_edit_counts.csv' % (self.db_path)
-        result.to_csv(result_path,encoding='utf-8')
+        result.to_csv(result_path,na_rep='NONE',encoding='utf-8')
         return result
         #print(result.loc[(result['title'] == 'April')])
         #print(result.loc[result['page_id.1'] == 1])
@@ -127,7 +127,7 @@ class File_Importer(object):
         #print(nrs)
         result = df.join(s).join(nrs)
         result_path = '%s/edit_counts.csv' % (self.db_path)
-        result.to_csv(result_path,encoding='utf-8')
+        result.to_csv(result_path,na_rep='NONE',encoding='utf-8')
         print(result.loc[(result['title'] == 'April') & (result['namespace'] == 0)])
         if v:
             print(result)
@@ -217,11 +217,11 @@ def main():
     parser.add_argument('lang')
     args = parser.parse_args()
 
-    fi = File_Importer(args.lang,)
-    #fi.import_from_dump(v=True)
+    fi = File_Importer(args.lang)
+    fi.import_from_dump()
     #fi.import_csv_from_file()
     #fi.test()
-    fi.add_rev_size(v=True)
+    fi.add_rev_size()
     fi.link_documents()
     #dbi.link_documents()
     #dbi.add_rev_size(v=True)
