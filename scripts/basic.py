@@ -67,7 +67,7 @@ class Dump_Handler(object):
         self.base_path = r'%s%s' % (self.base,self.count)
         #if os.path.exists(r'%s.xml' % (self.base_path)):
         #    self.remove_dump()
-        self.decompress()
+        #self.decompress()
         self.open_dump()
         self.count += 1
         
