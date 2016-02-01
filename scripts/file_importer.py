@@ -5,27 +5,33 @@ import os
 import datetime
 import basic
 import json
+import argparse
 
 ## TO START MONGOD INSTANCE ON OMNI:
 ## mongod --dbpath ~/jim/wiki_data/mongodb_data/ --fork --logpath ~/jim/wiki_data/mongodb_data/logs/mongodb.log
 
 class File_Importer(object):
-    def __init__(self,wiki_name,db_file_name=None):
+    def __init__(self,wiki_name,db_path=None):
         basic.log('creating importer...')
         self.wiki_name = wiki_name
         self.dh = None
-        self.db_path = os.path.join(os.path.dirname(__file__),os.pardir,'db/')
-        if not db_file_name:
-            self.db_file_name = '%s%s.csv' % (self.db_path,wiki_name)
-            self.db_file = open(self.db_file_name,'a')
+        if not db_path:
+            self.db_path = os.path.join(os.path.dirname(__file__),os.pardir,'db/') + wiki_name
         else:
-            self.db_file_name = '%s%s' % (self.db_path,db_file_name)
-        self.db = None
+            self.db_path = db_path
+        self.create_db_dir()
+
+    def create_db_dir(self):
+        if not os.path.exists(self.db_path):
+            print('creating dir: %s' % self.db_path)
+            os.makedirs(self.db_path)
 
     def import_from_dump(self,v=False):
         inserted_count = 0
         self.dh = basic.Dump_Handler(self.wiki_name,history=True)
-        self.db_file.write('"page_id","namespace","title","user_text","user_id","revert","ts"\n')
+        db_file_name = '%s/raw_edits.csv' % self.db_path
+        db_file = open(db_file_name,'w')
+        db_file.write('"page_id","namespace","title","user_text","user_id","revert","ts"\n')
         while True:
             try:
                 self.dh.next_dump()
@@ -36,7 +42,7 @@ class File_Importer(object):
             
             for i,page in enumerate(self.dh.dump):
                 if page.namespace == 1 or page.namespace == 0:
-                    self.create_csv_document(page)
+                    self.create_csv_document(page,db_file)
                     inserted_count += 1
                     if v and inserted_count % 1000 == 0 and inserted_count != 0:
                         basic.log('inserted (insert) %s documents' % inserted_count)
@@ -64,7 +70,7 @@ class File_Importer(object):
             d['rev'].append(r)
         return d
 
-    def create_csv_document(self,page):
+    def create_csv_document(self,page,db_file):
         rt = basic.Revert_Tracker()
         d = {}
         d['page_id'] = page.id
@@ -86,38 +92,49 @@ class File_Importer(object):
                                                          r['user_id'],
                                                          r['revert'],
                                                          r['ts'])
-            self.db_file.write(result)
+            db_file.write(result)
 
     def link_documents(self,v=False):
-        n0 = self.db.loc[(self.db['namespace'] == 0)].set_index('title',drop=False)
-        n1 = self.db.loc[(self.db['namespace'] == 1)].set_index('title',drop=False)
-        l0 = self.db.loc[(self.db['namespace'] == 0)].set_index('title',drop=False)[['page_id']]
-        l1 = self.db.loc[(self.db['namespace'] == 1)].set_index('title',drop=False)[['page_id']]
+        f_in_name = '%s/edit_counts.csv' % self.db_path
+        f_in = pd.read_csv(f_in_name)
+        n0 = f_in.loc[(f_in['namespace'] == 0)].set_index('title',drop=False)
+        n1 = f_in.loc[(f_in['namespace'] == 1)].set_index('title',drop=False)
+        l0 = f_in.loc[(f_in['namespace'] == 0)].set_index('title',drop=False)[['page_id']]
+        l1 = f_in.loc[(f_in['namespace'] == 1)].set_index('title',drop=False)[['page_id']]
         l0.rename(columns = {'page_id':'linked_id'}, inplace = True)
         l1.rename(columns = {'page_id':'linked_id'}, inplace = True)
-        
         result0 = n0.join(l1).set_index('page_id')
         result1 = n1.join(l0).set_index('page_id')
         result = result0.append(result1)
-        print(result)
-        print(result.loc[(result['title'] == 'April')])
+        if v:
+            print(result)
+        result_path = '%s/linked_edit_counts.csv' % (self.db_path)
+        result.to_csv(result_path,encoding='utf-8')
+        return result
+        #print(result.loc[(result['title'] == 'April')])
         #print(result.loc[result['page_id.1'] == 1])
         
         
     def add_rev_size(self,v=False):
+        f_in_name = '%s/raw_edits.csv' % self.db_path
+        f_in = pd.read_csv(f_in_name)
         count = 0
-        nr = self.db.loc[(self.db['revert'] == False)]
-        df = self.db[['page_id','title','namespace']].drop_duplicates(subset='page_id').set_index('page_id',drop=False)
-        s = self.db['page_id'].value_counts().to_frame('len')
+        nr = f_in.loc[(f_in['revert'] == False)]
+        df = f_in[['page_id','title','namespace']].drop_duplicates(subset='page_id').set_index('page_id',drop=False)
+        s = f_in['page_id'].value_counts().to_frame('len')
         #print(s.iloc[0])
         nrs = nr['page_id'].value_counts().to_frame('no_revert_len')
         #print(nrs)
         result = df.join(s).join(nrs)
-        result_path = '%s%s_edit_counts.csv' % (self.db_path,self.wiki_name)
+        result_path = '%s/edit_counts.csv' % (self.db_path)
         result.to_csv(result_path,encoding='utf-8')
-        #print(self.db.loc[(self.db['title'] == 'April') & (self.db['namespace'] == 0)])
+        print(result.loc[(result['title'] == 'April') & (result['namespace'] == 0)])
         if v:
             print(result)
+        return result
+
+    def test(self):
+        print(f_in.loc[(f_fin['title'] == 'April')])
         
 '''
 class User_Db_Importer(Db_Importer):
@@ -193,21 +210,24 @@ class User_Db_Importer(Db_Importer):
             print(result)
             self.uc.update({'_id':p['_id']},
                            {'$set':result})
-'''            
+'''
             
 def main():
-    langs = ['simple']
-    for lang in langs:
-        fi = File_Importer(lang)
-        #fi.import_csv_from_file()
-        #fi.add_rev_size()
-        #fi.link_documents()
-        #fi.import_from_dump(v=True)
-        #dbi.link_documents()
-        #dbi.add_rev_size(v=True)
-        #udi = User_Db_Importer(lang)
-        #udi.make_user_documents(v=True)
-        #udi.create_edit_counts()
+    parser = argparse.ArgumentParser(description='process wiki data')
+    parser.add_argument('lang')
+    args = parser.parse_args()
+
+    fi = File_Importer(args.lang,)
+    #fi.import_from_dump(v=True)
+    #fi.import_csv_from_file()
+    #fi.test()
+    fi.add_rev_size(v=True)
+    fi.link_documents()
+    #dbi.link_documents()
+    #dbi.add_rev_size(v=True)
+    #udi = User_Db_Importer(lang)
+    #udi.make_user_documents(v=True)
+    #udi.create_edit_counts()
                 
 if __name__ == "__main__":
     main()
