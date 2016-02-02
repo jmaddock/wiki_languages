@@ -1,5 +1,6 @@
 from mw import xml_dump,Timestamp
 from collections import Counter
+import single_dump_handler
 import pandas as pd
 import os
 import datetime
@@ -26,6 +27,23 @@ class File_Importer(object):
             print('creating dir: %s' % self.db_path)
             os.makedirs(self.db_path)
 
+    def single_import_from_dump(self,f_in,f_out,v=False):
+        inserted_count = 0
+        self.dh = single_dump_handler.Single_Dump_Handler(self.wiki_name,f_in)
+        db_file = open(f_in,'w')
+        db_file.write('"page_id","namespace","title","user_text","user_id","revert","ts"\n')
+        self.dh.process_dump()
+        for i,page in enumerate(self.dh.dump):
+            if page.namespace == 1 or page.namespace == 0:
+                self.create_csv_document(page,db_file)
+                inserted_count += 1
+                if v and inserted_count % 1000 == 0 and inserted_count != 0:
+                    basic.log('inserted (insert) %s documents' % inserted_count)
+            if i % 1000 == 0 and i != 0 and v:
+                basic.log('processed (insert) %s documents' % i)
+        basic.write_log('inserted %s documents' % inserted_count)
+
+            
     def import_from_dump(self,v=False):
         inserted_count = 0
         self.dh = basic.Dump_Handler(self.wiki_name,history=True)

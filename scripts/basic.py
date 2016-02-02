@@ -24,7 +24,7 @@ class Revert_Tracker(object):
             return False
 
 class Dump_Handler(object):
-    def __init__(self,wiki_name,history):
+    def __init__(self,wiki_name,history,f_in=None):
         self.base_dir = os.path.join(os.path.dirname(__file__),os.pardir,'data/') + wiki_name
         #self.base_dir = r'/Volumes/SupahFast2/jim/wiki_11_13_2015/%s' % (wiki_name)
         if history:
