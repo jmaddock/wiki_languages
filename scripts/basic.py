@@ -62,12 +62,12 @@ class Dump_Handler(object):
         subprocess.call(['rm',f])
 
     def next_dump(self):
-        #if self.count > 1:
-        #    self.remove_dump()
+        if self.count > 1:
+            self.remove_dump()
         self.base_path = r'%s%s' % (self.base,self.count)
-        #if os.path.exists(r'%s.xml' % (self.base_path)):
-        #    self.remove_dump()
-        #self.decompress()
+        if os.path.exists(r'%s.xml' % (self.base_path)):
+            self.remove_dump()
+        self.decompress()
         self.open_dump()
         self.count += 1
         

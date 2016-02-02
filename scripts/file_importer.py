@@ -220,7 +220,7 @@ def main():
     args = parser.parse_args()
 
     fi = File_Importer(args.lang)
-    #fi.import_from_dump()
+    fi.import_from_dump()
     #fi.import_csv_from_file()
     #fi.test()
     fi.add_rev_size()
