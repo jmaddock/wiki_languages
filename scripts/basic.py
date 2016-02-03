@@ -114,7 +114,7 @@ def split_topics(page,*kwargs):
 
 def write_to_results(f_name):
     f_path = os.path.join(os.path.dirname(__file__),os.pardir,'results/') + f_name
-    f = codecs.open(f_path,'w','utf-8')
+    f = codecs.open(f_path,'a','utf-8')
     return f
 
 def results_path(subdir=None):

@@ -89,16 +89,27 @@ class File_Importer(object):
                                                          r['ts'])
             db_file.write(result)
 
-
+# use --num flag with default file structure
+# only use --infile and --outfile without --num flag
 def main():
     parser = argparse.ArgumentParser(description='process wiki dumps')
     parser.add_argument('lang')
-    parser.add_argument('f_in')
-    parser.add_argument('f_out')
+    parser.add_argument('-i','--infile')
+    parser.add_argument('-o','--outfile')
+    parser.add_argument('-n','--num')
     args = parser.parse_args()
     fi = File_Importer(args.lang)
-    fi.single_import_from_dump(args.f_in,args.f_out)
+    if args.num and (args.infile or args.outfile):
+        print('use EITHER --infile and --outfile OR --num flags')
+        return None
+    elif args.num:
+        infile = os.path.join(os.path.dirname(__file__),os.pardir,'data/%s/%swiki-latest-pages-meta-history%s.xml.7z' % (args.lang,args.lang,args.num))
+        outfile = os.path.join(os.path.dirname(__file__),os.pardir,'db/%s/raw_edits%s.7z' % (args.lang,args.num))
+        fi.create_db_dir()
+    else:
+        infile = args.infile
+        outfile = args.outfile
+    fi.single_import_from_dump(infile,outfile)
     
 if __name__ == "__main__":
     main()
-

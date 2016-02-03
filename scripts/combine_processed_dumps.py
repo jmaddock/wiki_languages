@@ -19,12 +19,16 @@ class Combine_Dumps(object):
 
 def main():
     parser = argparse.ArgumentParser(description='process wiki data')
-    parser.add_argument('base_dir')
-    parser.add_argument('f_out')
-    parser.add_argument('files',nargs='+')
+    parser.add_argument('-b','--base_dir')
+    parser.add_argument('-l','--lang')
+    parser.add_argument('-o','--outfile',nargs=1)
+    parser.add_argument('-f','--files',nargs='+')
     args = parser.parse_args()
-
-    c = Combine_Dumps(args.files,args.f_out,args.base_dir)
+    if args.base_dir:
+        base_dir = args.base_dir
+    elif args.lang:
+        base_dir = os.path.join(os.path.dirname(__file__),os.pardir,'db/%s/' % (args.lang))
+    c = Combine_Dumps(args.files,args.outfile,args.base_dir)
     c.combine()
 
 if __name__ == "__main__":
