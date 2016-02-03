@@ -89,7 +89,7 @@ class Analyzer(object):
             
 def main():
     parser = argparse.ArgumentParser(description='process wiki dumps')
-    parser.add_argument('lang')
+    parser.add_argument('-l','--lang')
     args = parser.parse_args()
     a = Analyzer(args.lang)    
     a.edit_statistics(statistics=['total','var','std','mean','median'])
