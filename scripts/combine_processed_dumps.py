@@ -17,6 +17,8 @@ class Combine_Dumps(object):
                 result = result.append(pd.read_csv(f_in))
         result.to_csv(self.base_dir+self.f_out)
 
+## Use either --lang or --base_dir flag
+## TODO: create auto file name parser
 def main():
     parser = argparse.ArgumentParser(description='process wiki data')
     parser.add_argument('-b','--base_dir')

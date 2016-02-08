@@ -13,8 +13,8 @@ class Analyzer(object):
         self.db_path = os.path.join(os.path.dirname(__file__),os.pardir,'db/%s/linked_edit_counts.csv' % (lang))
     
     def edit_statistics(self,statistics,v=False):
-        statistics.append('total')
-        f = basic.write_to_results('/edits_%s.csv' % self.lang)
+        f_out = basic.create_dir('results/basic_stats')
+        f = basic.write_to_results('%s/edits_%s.csv' % (f_out,self.lang))
         header = '"lang"'
         for n in self.namespace:
             for r in self.revert:
@@ -26,7 +26,6 @@ class Analyzer(object):
         f.write('"%s"' % self.lang)
         result[self.lang] = defaultdict(dict)
         df = pd.read_csv(self.db_path)
-        print(df)
         for n in self.namespace:
             result[self.lang][n] = defaultdict(dict)
             for r in self.revert:
@@ -66,34 +65,43 @@ class Analyzer(object):
 
     
     def edit_histogram(self,plot=True,v=False):
-        for lang in self.langs:
-            pages = self.db[lang].find({'rev_len.no_revert':{'$gt':1}}).limit(10)
-            total = pages.count()
-            df = DataFrame({'len':[],'revert':[],'namespace':[]})
-            for i,p in enumerate(pages):
-                for r in self.revert:
-                    df = df.append(DataFrame({
-                        'len':[p['rev_len'][r]],
-                        'revert':[revert.index(r)],
-                        'namespace':[p['namespace']]
-                    }))
-                if i % 1000 == 0 and i != 0 and v:
-                    basic.log('processed %s/%s documents' % (i,total))
-            print(df)
-            for n in self.namespace:
-                for r in self.revert:
-                    basic.log('%s %s %s' % (lang,n,r))
-                    result = df.loc[(df['namespace'] == namespace.index(n)) & (df['revert'] == revert.index(r)),'len'].value_counts()
-                    result.to_csv(basic.results_path('/distributions/%s_%s_%s.csv' % (lang,n,r)),encoding='utf-8')
-                    print(result)
-            
+        f_out = basic.create_dir('results/histograms')
+        df = pd.read_csv(self.db_path)
+        for n in self.namespace:
+            for r in self.revert:
+                basic.log('%s %s %s' % (self.lang,n,r))
+                if n == 'at':
+                    result = df[r].value_counts()
+                else:
+                    result = df.loc[(df['namespace'] == self.namespace.index(n)),r].value_counts()
+                result.to_csv('%s/%s_%s_%s.csv' % (f_out,self.lang,n,r),encoding='utf-8')
+
+def job_script(f_out,analysis):
+    f = open(f_out,'w')
+    dirs = os.path.join(os.path.dirname(__file__),os.pardir,'db/')
+    langs = [name for name in os.listdir(dirs) if os.path.isdir(dirs+name)]
+    print(os.listdir(dirs))
+    for a in analysis:
+        for l in langs:
+            out = 'python3 hpc_analyzer.py -l %s -a %s' % (l,a)
+            print(out)
+            f.write(out)
+
 def main():
     parser = argparse.ArgumentParser(description='process wiki dumps')
     parser.add_argument('-l','--lang')
+    parser.add_argument('-a','--analysis',nargs='+')
+    parser.add_argument('--f_out')
+    parser.add_argument('-j','--job_script',action='store_true')
     args = parser.parse_args()
-    a = Analyzer(args.lang)    
-    a.edit_statistics(statistics=['total','var','std','mean','median'])
-    #a.edit_histogram()
+    if args.job_script:
+        job_script(args.f_out,args.analysis)
+    else:
+        a = Analyzer(args.lang)
+        if 'stats' in args.analysis:
+            a.edit_statistics(statistics=['total','var','std','mean','median'])
+        if 'dist' in args.analysis:
+            a.edit_histogram()
 
 if __name__ == "__main__":
     main()

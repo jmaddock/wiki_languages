@@ -11,7 +11,7 @@ import argparse
 ## TO START MONGOD INSTANCE ON OMNI:
 ## mongod --dbpath ~/jim/wiki_data/mongodb_data/ --fork --logpath ~/jim/wiki_data/mongodb_data/logs/mongodb.log
 
-class File_Importer(object):
+class Page_Edit_Counter(object):
     def __init__(self,wiki_name,db_path=None):
         basic.log('creating importer...')
         self.wiki_name = wiki_name
@@ -152,11 +152,11 @@ def main():
     args = parser.parse_args()
 
     if args.base_dir:
-        fi = File_Importer(args.lang,args.base_dir)
+        c = Page_Edit_Counter(args.lang,args.base_dir)
     else:
-        fi = File_Importer(args.lang)
-    fi.rev_size()
-    fi.link_documents()
+        c = Page_Edit_Counter(args.lang)
+    c.rev_size()
+    c.link_documents()
                 
 if __name__ == "__main__":
     main()

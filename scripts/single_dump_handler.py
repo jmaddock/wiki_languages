@@ -6,6 +6,17 @@ import codecs
 import os
 import argparse
 
+class Revert_Tracker(object):
+    def __init__(self):
+        self.hashes = []
+
+    def is_revert(self,new_hash):
+        if new_hash in self.hashes:
+            return True
+        else:
+            self.hashes.append(new_hash)
+            return False
+
 class Single_Dump_Handler(object):
     def __init__(self,wiki_name,f_in):
         self.wiki_name = wiki_name
@@ -37,7 +48,7 @@ class Single_Dump_Handler(object):
         self.decompress()
         self.open_dump()
 
-class File_Importer(object):
+class CSV_Creator(object):
     def __init__(self,wiki_name):
         basic.log('creating importer...')
         self.wiki_name = wiki_name
@@ -66,7 +77,7 @@ class File_Importer(object):
         self.dh.remove_dump()
 
     def create_csv_document(self,page,db_file):
-        rt = basic.Revert_Tracker()
+        rt = Revert_Tracker()
         d = {}
         d['page_id'] = page.id
         d['namespace'] = page.namespace
@@ -93,23 +104,23 @@ class File_Importer(object):
 # only use --infile and --outfile without --num flag
 def main():
     parser = argparse.ArgumentParser(description='process wiki dumps')
-    parser.add_argument('lang')
+    parser.add_argument('-l','--lang')
     parser.add_argument('-i','--infile')
-    parser.add_argument('-o','--outfile')
+    parser.add_argument('-o','--outfile',nargs=1)
     parser.add_argument('-n','--num')
     args = parser.parse_args()
-    fi = File_Importer(args.lang)
+    c = CSV_Creator(args.lang)
     if args.num and (args.infile or args.outfile):
         print('use EITHER --infile and --outfile OR --num flags')
         return None
     elif args.num:
         infile = os.path.join(os.path.dirname(__file__),os.pardir,'data/%s/%swiki-latest-pages-meta-history%s.xml.7z' % (args.lang,args.lang,args.num))
         outfile = os.path.join(os.path.dirname(__file__),os.pardir,'db/%s/raw_edits%s.7z' % (args.lang,args.num))
-        fi.create_db_dir()
+        c.create_db_dir()
     else:
         infile = args.infile
         outfile = args.outfile
-    fi.single_import_from_dump(infile,outfile)
+    c.single_import_from_dump(infile,outfile)
     
 if __name__ == "__main__":
     main()
