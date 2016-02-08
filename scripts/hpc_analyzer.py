@@ -81,7 +81,7 @@ def job_script(f_out,analysis):
     script_dir = os.path.dirname(__file__)
     lang_dir = os.path.join(os.path.dirname(__file__),os.pardir,'db/')
     langs = [name for name in os.listdir(dirs) if os.path.isdir(lang_dir+name)]
-    print(os.listdir(dirs))
+    print(os.listdir(lang_dir))
     for a in analysis:
         for l in langs:
             out = 'python3 %s/hpc_analyzer.py -l %s -a %s\n' % (script_dir,l,a)
