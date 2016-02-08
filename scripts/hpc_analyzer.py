@@ -83,7 +83,7 @@ def job_script(f_out,analysis):
     print(os.listdir(dirs))
     for a in analysis:
         for l in langs:
-            out = 'python3 hpc_analyzer.py -l %s -a %s' % (l,a)
+            out = 'python3 hpc_analyzer.py -l %s -a %s\n' % (l,a)
             print(out)
             f.write(out)
 
