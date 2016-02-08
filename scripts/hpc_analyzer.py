@@ -78,12 +78,13 @@ class Analyzer(object):
 
 def job_script(f_out,analysis):
     f = open(f_out,'w')
-    dirs = os.path.join(os.path.dirname(__file__),os.pardir,'db/')
-    langs = [name for name in os.listdir(dirs) if os.path.isdir(dirs+name)]
+    script_dir = os.path.dirname(__file__)
+    lang_dir = os.path.join(os.path.dirname(__file__),os.pardir,'db/')
+    langs = [name for name in os.listdir(dirs) if os.path.isdir(lang_dir+name)]
     print(os.listdir(dirs))
     for a in analysis:
         for l in langs:
-            out = 'python3 hpc_analyzer.py -l %s -a %s\n' % (l,a)
+            out = 'python3 %s/hpc_analyzer.py -l %s -a %s\n' % (script_dir,l,a)
             print(out)
             f.write(out)
 
