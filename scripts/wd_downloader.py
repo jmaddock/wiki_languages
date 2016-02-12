@@ -41,8 +41,8 @@ class WD_Downloader(object):
     def parse_langs(self,lang_file,limit):
         return None
 
-langs = ['es','en','vi','fa','sh','he','hu','uk','ko','ca','fi','no','cs','pl',]
-target_dir = os.path.join(os.path.dirname(__file__),os.pardir,'data')
+langs = ['es','vi','fa','sh','he','hu','uk','ko','ca','fi','no','cs','pl',]
+target_dir = os.path.join(os.path.dirname(__file__),os.pardir,'data/wiki_02_10_2016')
 #target_dir = r'/Volumes/SupahFast2/jim/wiki_11_13_2015'
 
 d = WD_Downloader(target_dir,langs)
