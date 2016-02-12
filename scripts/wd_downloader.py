@@ -1,5 +1,6 @@
 import urllib
 import os
+import argparse
 
 class WD_Downloader(object):
 
@@ -14,7 +15,7 @@ class WD_Downloader(object):
                 print('creating dir: %s' % new_dir)
                 os.makedirs(new_dir)
 
-    def download(self,file_type='current'):
+    def download(self,file_type):
         wd = urllib.URLopener()
         for lang in self.langs:
             print('downloading %s' % lang)
@@ -41,10 +42,24 @@ class WD_Downloader(object):
     def parse_langs(self,lang_file,limit):
         return None
 
-langs = ['es','vi','fa','sh','he','hu','uk','ko','ca','fi','no','cs','pl',]
-target_dir = os.path.join(os.path.dirname(__file__),os.pardir,'data')
-#target_dir = r'/Volumes/SupahFast2/jim/wiki_11_13_2015'
+def main():
+    parser = argparse.ArgumentParser(description='download wiki data')
+    parser.add_argument('-b','--target_dir')
+    parser.add_argument('-l','--langs',nargs='+')
+    parser.add_argument('-h','--history',action='store_true')
+    parser.add_argument('-c','--current',action='store_true')
+    args = parser.parse_args()
+    if args.target_dir:
+        target_dir = args.target_dir
+    else:
+        target_dir = os.path.join(os.path.dirname(__file__),os.pardir,'data')
+    #target_dir = r'/Volumes/SupahFast2/jim/wiki_11_13_2015'
+    d = WD_Downloader(target_dir,args.langs)
+    d.make_dirs()
+    if args.history:
+        d.download('history')
+    if args.current:
+        d.download('current')
 
-d = WD_Downloader(target_dir,langs)
-d.make_dirs()
-d.download('history')
+if __name__ == "__main__":
+    main()
