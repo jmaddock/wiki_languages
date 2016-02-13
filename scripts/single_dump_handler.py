@@ -49,10 +49,14 @@ class Single_Dump_Handler(object):
         self.open_dump()
 
 class CSV_Creator(object):
-    def __init__(self,wiki_name):
+    def __init__(self,wiki_name,db_dir):
         basic.log('creating importer...')
         self.wiki_name = wiki_name
         self.dh = None
+        self.edit_count = 0
+        self.page_count = 0
+        if db_dir:
+            self.db_path = os.path.join(os.path.dirname(__file__),os.pardir,'db/')
 
     def create_db_dir(self):
         if not os.path.exists(self.db_path):
@@ -60,20 +64,15 @@ class CSV_Creator(object):
             os.makedirs(self.db_path)
 
     def single_import_from_dump(self,f_in=None,f_out=None,n=None,v=False):
-        inserted_count = 0
         self.dh = Single_Dump_Handler(self.wiki_name,f_in)
         db_file = open(f_out,'w')
         db_file.write('"page_id","namespace","title","user_text","user_id","revert","ts"\n')
         self.dh.process_dump()
-        for i,page in enumerate(self.dh.dump):
+        for page in self.dh.dump:
             if page.namespace == 1 or page.namespace == 0:
                 self.create_csv_document(page,db_file)
-                inserted_count += 1
-                if v and inserted_count % 1000 == 0 and inserted_count != 0:
-                    basic.log('inserted (insert) %s documents' % inserted_count)
-            if i % 1000 == 0 and i != 0 and v:
-                basic.log('processed (insert) %s documents' % i)
-        basic.write_log('inserted %s documents' % inserted_count)
+                self.page_count += 1
+        basic.log('processed %s pages and %s edits' % (self.page_count,self.edit_count))
         self.dh.remove_dump()
 
     def create_csv_document(self,page,db_file):
@@ -81,7 +80,8 @@ class CSV_Creator(object):
         d = {}
         d['page_id'] = page.id
         d['namespace'] = page.namespace
-        d['title'] = page.title.split(':')[-1].replace('"','')
+        #d['title'] = page.title.split(':',1)[-1].replace('"','').strip()
+        d['title'] = page.title.replace('Talk:','').replace('"','').strip()
         for rev in page:
             r = {}
             if rev.contributor.user_text:
@@ -98,26 +98,46 @@ class CSV_Creator(object):
                                                          r['user_id'],
                                                          r['revert'],
                                                          r['ts'])
+            self.edit_count += 1
             db_file.write(result)
 
+def job_script(f_out):
+    f = open(f_out,'w')
+    script_dir = os.path.abspath(__file__)
+    lang_dir = os.path.join(os.path.dirname(__file__),os.pardir,'data/')
+    langs = [name for name in os.listdir(lang_dir) if os.path.isdir(lang_dir+name)]
+    print(os.listdir(lang_dir))
+    for l in langs:
+        print(l)
+        n = [x for x in os.listdir(lang_dir+l) if '.7z' in x]
+        print(n)
+        for i in range(1,len(n)+1):
+            out = 'python3 %s/single_dump_handler.py -l %s -n %s\n' % (script_dir,l,i)
+            f.write(out)
+            
 # use --num flag with default file structure
 # only use --infile and --outfile without --num flag
 def main():
     parser = argparse.ArgumentParser(description='process wiki dumps')
     parser.add_argument('-l','--lang')
     parser.add_argument('-i','--infile')
-    parser.add_argument('-o','--outfile',nargs=1)
+    parser.add_argument('-o','--outfile')
     parser.add_argument('-n','--num')
+    parser.add_argument('-j','--job_script')
     args = parser.parse_args()
-    c = CSV_Creator(args.lang)
-    if args.num and (args.infile or args.outfile):
+    if args.job_script:
+        job_script(args.job_script)
+        return None
+    elif args.num and (args.infile or args.outfile):
         print('use EITHER --infile and --outfile OR --num flags')
         return None
     elif args.num:
+        c = CSV_Creator(args.lang,db_dir=True)
         infile = os.path.join(os.path.dirname(__file__),os.pardir,'data/%s/%swiki-latest-pages-meta-history%s.xml.7z' % (args.lang,args.lang,args.num))
-        outfile = os.path.join(os.path.dirname(__file__),os.pardir,'db/%s/raw_edits%s.7z' % (args.lang,args.num))
+        outfile = os.path.join(os.path.dirname(__file__),os.pardir,'db/%s/raw_edits_%s.csv' % (args.lang,args.num))
         c.create_db_dir()
     else:
+        c = CSV_Creator(args.lang,db_dir=False)
         infile = args.infile
         outfile = args.outfile
     c.single_import_from_dump(infile,outfile)

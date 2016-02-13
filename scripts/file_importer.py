@@ -46,6 +46,8 @@ class Page_Edit_Counter(object):
         result_path = '%s/linked_edit_counts.csv' % (self.db_path)
         columns = ['title','namespace','len','no_revert_len','linked_id']
         result.to_csv(result_path,na_rep='NONE',columns=columns,encoding='utf-8')
+        d=result.duplicated('page_id',keep=False).to_frame()
+        print(result.loc[d[0] == True])
         return result
         #print(result.loc[(result['title'] == 'April')])
         #print(result.loc[result['page_id.1'] == 1])        
@@ -53,7 +55,6 @@ class Page_Edit_Counter(object):
     def rev_size(self,v=False):
         f_in_name = '%s/combined_raw_edits.csv' % self.db_path
         f_in = pd.read_csv(f_in_name)
-        print(f_in.loc[(f_in['page_id'] == 337753)])
         nr = f_in.loc[(f_in['revert'] == False)]
         df = f_in[['page_id','title','namespace']].drop_duplicates(subset='page_id').set_index('page_id',drop=False)
         s = f_in['page_id'].value_counts().to_frame('len')
@@ -84,9 +85,7 @@ class Page_Edit_Counter(object):
         nr = f_in.loc[(f_in['revert'] == False)]
         df = f_in[['page_id','title','namespace']].drop_duplicates(subset='page_id').set_index('page_id',drop=False)
         s = f_in['page_id'].value_counts().to_frame('len')
-        #print(s.iloc[0])
         nrs = nr['page_id'].value_counts().to_frame('no_revert_len')
-        #print(nrs)
         result = df.join(s).join(nrs)
         result_path = '%s/edit_counts.csv' % (self.db_path)
         result.to_csv(result_path,na_rep='NONE',columns=columns,encoding='utf-8')
