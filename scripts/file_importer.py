@@ -92,21 +92,34 @@ class Page_Edit_Counter(object):
         if v:
             print(result)
         return result
-                        
+
+def job_script(args):
+    f = open(args.job_script,'w')
+    script_dir = os.path.abspath(__file__)
+    lang_dir = os.path.join(os.path.dirname(__file__),os.pardir,'db/')
+    langs = [name for name in os.listdir(lang_dir) if os.path.isdir(lang_dir+name)]
+    for l in langs:
+        out = 'python3 %s -l %s\n' % (script_dir,l)
+        print(out)
+        f.write(out)
+    
 def main():
     parser = argparse.ArgumentParser(description='process wiki data')
     parser.add_argument('-l','--lang')
     parser.add_argument('-b','--base_dir')
+    parser.add_argument('-j','--job_script')
     #parser.add_argument('-i','--infile')
     #parser.add_argument('-o','--outfile')
     args = parser.parse_args()
-
-    if args.base_dir:
-        c = Page_Edit_Counter(args.lang,args.base_dir)
+    if args.job_script:
+        job_script(args)
     else:
-        c = Page_Edit_Counter(args.lang)
-    c.rev_size()
-    c.link_documents()
+        if args.base_dir:
+            c = Page_Edit_Counter(args.lang,args.base_dir)
+        else:
+            c = Page_Edit_Counter(args.lang)
+        c.rev_size()
+        c.link_documents()
                 
 if __name__ == "__main__":
     main()
