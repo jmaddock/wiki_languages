@@ -112,7 +112,7 @@ def job_script(f_out):
         n = [x for x in os.listdir(lang_dir+l) if '.7z' in x]
         print(n)
         for i in range(1,len(n)+1):
-            out = 'python3 %s/single_dump_handler.py -l %s -n %s\n' % (script_dir,l,i)
+            out = 'python3 %s -l %s -n %s\n' % (script_dir,l,i)
             f.write(out)
             
 # use --num flag with default file structure
