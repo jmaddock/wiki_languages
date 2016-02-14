@@ -18,7 +18,7 @@ class Combine_Dumps(object):
     def get_files(self,db_dir):
         files = []
         for f in os.listdir(db_dir):
-            if f[:9] == 'raw_edits_':
+            if f[:10] == 'raw_edits_':
                 files.append(f)
         return files
         
