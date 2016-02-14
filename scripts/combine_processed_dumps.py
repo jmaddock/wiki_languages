@@ -33,6 +33,16 @@ class Combine_Dumps(object):
         result.to_csv(self.base_dir+self.f_out)
         basic.log('created %s' % self.f_out)
 
+def job_script(args):
+    f = open(args.job_script,'w')
+    script_dir = os.path.abspath(__file__)
+    lang_dir = os.path.join(os.path.dirname(__file__),os.pardir,'db/')
+    langs = [name for name in os.listdir(lang_dir) if os.path.isdir(lang_dir+name)]
+    for l in langs:
+        out = 'python3 %s -l %s' % (script_dir,l)
+        print(out)
+        f.write(out)
+
 ## Use either --lang or --base_dir flag
 ## TODO: create auto file name parser
 def main():
@@ -41,13 +51,17 @@ def main():
     parser.add_argument('-l','--lang')
     parser.add_argument('-o','--outfile')
     parser.add_argument('-f','--files',nargs='*')
+    parser.add_argument('-j','--job_script')
     args = parser.parse_args()
-    if args.base_dir:
-        base_dir = args.base_dir
-    elif args.lang:
-        base_dir = os.path.join(os.path.dirname(__file__),os.pardir,'db/%s/' % (args.lang))
-    c = Combine_Dumps(args.files,args.outfile,base_dir,args.lang)
-    c.combine()
+    if args.job_script:
+        job_script(args)
+    else:
+        if args.base_dir:
+            base_dir = args.base_dir
+        elif args.lang:
+            base_dir = os.path.join(os.path.dirname(__file__),os.pardir,'db/%s/' % (args.lang))
+        c = Combine_Dumps(args.files,args.outfile,base_dir,args.lang)
+        c.combine()
 
 if __name__ == "__main__":
     main()
