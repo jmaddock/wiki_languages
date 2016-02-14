@@ -128,7 +128,7 @@ def job_script(args):
             if args.no_revert:
                 out = '%s --no_revert' % out
             print(out)
-            f.write(out)
+            f.write(out+'\n')
 
 def main():
     parser = argparse.ArgumentParser(description='process wiki dumps')
