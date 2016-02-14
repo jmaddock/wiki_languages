@@ -59,9 +59,10 @@ class CSV_Creator(object):
             self.db_path = os.path.join(os.path.dirname(__file__),os.pardir,'db/')
 
     def create_db_dir(self):
-        if not os.path.exists(self.db_path):
-            print('creating dir: %s' % self.db_path)
-            os.makedirs(self.db_path)
+        print(self.db_path+self.wiki_name)
+        if not os.path.exists(self.db_path+self.wiki_name):
+            print('creating dir: %s' % self.db_path+self.wiki_name)
+            os.makedirs(self.db_path+self.wiki_name)
 
     def single_import_from_dump(self,f_in=None,f_out=None,n=None,v=False):
         self.dh = Single_Dump_Handler(self.wiki_name,f_in)
