@@ -47,8 +47,8 @@ class Page_Edit_Counter(object):
         result_path = '%s/linked_edit_counts.csv' % (self.db_path)
         columns = ['title','namespace','len','no_revert_len','linked_id']
         result.to_csv(result_path,na_rep='NONE',columns=columns,encoding='utf-8')
-        d=result.duplicated('page_id',keep=False).to_frame()
-        print(result.loc[d[0] == True])
+        #d=result.duplicated('page_id',keep=False).to_frame()
+        #print(result.loc[d[0] == True])
         return result
         #print(result.loc[(result['title'] == 'April')])
         #print(result.loc[result['page_id.1'] == 1])        

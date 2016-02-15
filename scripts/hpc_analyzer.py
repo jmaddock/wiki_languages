@@ -77,6 +77,7 @@ class Analyzer(object):
 
     
     def edit_histogram(self,plot=True,v=False):
+        basic.log('creating edit histogram %s' % self.lang)
         f_out = basic.create_dir('results/histograms')
         df = pd.read_csv(self.db_path)
         for n in self.namespace:
@@ -89,6 +90,7 @@ class Analyzer(object):
                 result.to_csv('%s/%s_%s_%s.csv' % (f_out,self.lang,n,r),encoding='utf-8')
 
     def edit_quantiles(self,v=False):
+        basic.log('creating edit quantiles %s' % self.lang)
         f_out = basic.create_dir('results/quantiles')
         df = pd.read_csv(self.db_path)
         q = np.arange(0,1,.10)
