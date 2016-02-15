@@ -65,14 +65,11 @@ class Analyzer(object):
                         if n == 't':
                             result[self.lang][n][r][s] = float(result[self.lang]['a'][r]['total'])/result[self.lang]['t'][r]['total']
                     elif s == 'mean_ratio':
-                        print(self.namespace.index(n))
-                        print(len(self.namespace)-1)
                         if self.namespace.index(n) == (len(self.namespace)-1):
                             result[self.lang][n][r][s] = float(result[self.lang]['a'][r]['mean'])/result[self.lang]['t'][r]['mean']
                     f.write(',%s' % result[self.lang][n][r][s])
         f.write('\n')
         f.close()
-        print(result)
         return result
 
     
@@ -101,7 +98,6 @@ class Analyzer(object):
                     result = df[r].quantile(q=q)
                 else:
                     result = df.loc[(df['namespace'] == self.namespace.index(n)),r].quantile(q=q)
-                print(result)
                 result.to_csv('%s/%s_%s_%s.csv' % (f_out,self.lang,n,r),encoding='utf-8')
 
     def combine_quantiles(self):
@@ -152,7 +148,6 @@ def main():
     if args.job_script:
         job_script(args)
     else:
-        print(args)
         revert = []
         if args.revert:
             revert.append('len')
