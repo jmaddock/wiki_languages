@@ -29,6 +29,7 @@ class Page_Edit_Counter(object):
             os.makedirs(self.db_path)
 
     def link_documents(self,v=False):
+        basic.log('linking %s' % self.wiki_name)
         f_in_name = '%s/edit_counts.csv' % self.db_path
         f_in = pd.read_csv(f_in_name)
         n0 = f_in.loc[(f_in['namespace'] == 0)].set_index('title',drop=False)
@@ -53,6 +54,7 @@ class Page_Edit_Counter(object):
         #print(result.loc[result['page_id.1'] == 1])        
         
     def rev_size(self,v=False):
+        basic.log('creating %s edit counts' % self.wiki_name)
         f_in_name = '%s/combined_raw_edits.csv' % self.db_path
         f_in = pd.read_csv(f_in_name)
         nr = f_in.loc[(f_in['revert'] == False)]

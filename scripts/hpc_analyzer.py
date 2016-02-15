@@ -7,11 +7,12 @@ from collections import Counter,defaultdict
 from pandas import DataFrame
 
 class Analyzer(object):
-    def __init__(self,lang,namespace=['a','t','at'],revert=['len','no_revert_len']):
+    def __init__(self,lang,namespace=['a','t','at'],revert=['len','no_revert_len'],drop1=False):
         self.lang = lang
         self.namespace = namespace
         self.revert = revert
         self.db_path = os.path.join(os.path.dirname(__file__),os.pardir,'db/%s/linked_edit_counts.csv' % (lang))
+        self.drop1 = drop1
     
     def edit_statistics(self,statistics,v=False):
         f_out = basic.create_dir('results/basic_stats')
@@ -27,6 +28,8 @@ class Analyzer(object):
         f.write('"%s"' % self.lang)
         result[self.lang] = defaultdict(dict)
         df = pd.read_csv(self.db_path)
+        if self.drop1:
+            df = df.loc[(df['len'] > 1)]
         for n in self.namespace:
             result[self.lang][n] = defaultdict(dict)
             for r in self.revert:
@@ -127,6 +130,8 @@ def job_script(args):
                 out = '%s --revert' % out
             if args.no_revert:
                 out = '%s --no_revert' % out
+            if args.drop1:
+                out = '%s --drop1' % out
             print(out)
             f.write(out+'\n')
 
@@ -140,6 +145,7 @@ def main():
     parser.add_argument('--f_out')
     parser.add_argument('-j','--job_script')
     parser.add_argument('-v','--verbose',action='store_true')
+    parser.add_argument('--drop1',action='store_true')
     args = parser.parse_args()
     if args.job_script:
         job_script(args)
@@ -150,7 +156,7 @@ def main():
             revert.append('len')
         if args.no_revert:
             revert.append('no_revert_len')
-        a = Analyzer(args.lang,args.namespace,revert)
+        a = Analyzer(args.lang,args.namespace,revert,args.drop1)
         if 'stats' in args.analysis:
             a.edit_statistics(statistics=['total','var','std','mean','median','total_ratio','mean_ratio'])
         if 'dist' in args.analysis:
