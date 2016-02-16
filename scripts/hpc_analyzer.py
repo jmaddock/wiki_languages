@@ -16,7 +16,10 @@ class Analyzer(object):
     
     def edit_statistics(self,statistics,v=False):
         f_out = basic.create_dir('results/basic_stats')
-        f = open('%s/edits_%s.csv' % (f_out,self.lang),'w')
+        if self.drop1:
+            f = open('%s/edits_drop1_%s.csv' % (f_out,self.lang),'w')
+        else:
+            f = open('%s/edits_%s.csv' % (f_out,self.lang),'w')
         header = '"lang"'
         for n in self.namespace:
             for r in self.revert:
@@ -67,6 +70,10 @@ class Analyzer(object):
                     elif s == 'mean_ratio':
                         if self.namespace.index(n) == (len(self.namespace)-1):
                             result[self.lang][n][r][s] = float(result[self.lang]['a'][r]['mean'])/result[self.lang]['t'][r]['mean']
+                    elif s == 'missing_talk':
+                        if self.namespace.index(n) == (len(self.namespace)-1):
+                            result[self.lang][n][r][s] = df.loc[(df['linked_id'] == 'NONE')]
+                    
                     f.write(',%s' % result[self.lang][n][r][s])
         f.write('\n')
         f.close()
@@ -77,6 +84,8 @@ class Analyzer(object):
         basic.log('creating edit histogram %s' % self.lang)
         f_out = basic.create_dir('results/histograms')
         df = pd.read_csv(self.db_path)
+        if self.drop1:
+            df = df.loc[(df['len'] > 1)]
         for n in self.namespace:
             for r in self.revert:
                 basic.log('%s %s %s' % (self.lang,n,r))
@@ -84,21 +93,34 @@ class Analyzer(object):
                     result = df[r].value_counts()
                 else:
                     result = df.loc[(df['namespace'] == self.namespace.index(n)),r].value_counts()
-                result.to_csv('%s/%s_%s_%s.csv' % (f_out,self.lang,n,r),encoding='utf-8')
+                result.columns = ['articles']
+                result.to_csv('%s/%s_%s_%s.csv' % (f_out,self.lang,n,r),encoding='utf-8',index_label='edits')
 
-    def edit_quantiles(self,v=False):
+    def edit_quantiles(self,q=.01,quantile_range=False,v=False):
         basic.log('creating edit quantiles %s' % self.lang)
         f_out = basic.create_dir('results/quantiles')
         df = pd.read_csv(self.db_path)
-        q = np.arange(0,1,.10)
+        if self.drop1:
+            df = df.loc[(df['len'] > 1)]
+        q = np.arange(q,1+q,q)
         for n in self.namespace:
             for r in self.revert:
                 basic.log('%s %s %s' % (self.lang,n,r))
                 if n == 'at':
                     result = df[r].quantile(q=q)
+                    mean = df[r].mean()
                 else:
                     result = df.loc[(df['namespace'] == self.namespace.index(n)),r].quantile(q=q)
-                result.to_csv('%s/%s_%s_%s.csv' % (f_out,self.lang,n,r),encoding='utf-8')
+                    #qcut = pd.qcut(df.loc[(df['namespace'] == self.namespace.index(n)),r],q)
+                    #print(qcut)
+                    mean = df.loc[(df['namespace'] == self.namespace.index(n)),r].mean()
+                result = result.to_frame()
+                column = '%s_%s_%s' % (self.lang,n,r)
+                result.columns = [column]
+                result = result.append(DataFrame({column:mean},index=['mean_value']))
+                result = result.append(DataFrame({column:result.loc[(result[column] == int(mean))].tail(1).index.values},index=['mean_quantile']))
+                #result = result.append(DataFrame({column:}))
+                result.to_csv('%s/%s_%s_%s.csv' % (f_out,self.lang,n,r),encoding='utf-8',index_label='qauntiles')
 
     def combine_quantiles(self):
         data_dir = os.path.join(os.path.dirname(__file__),os.pardir,'results/quantiles/')
@@ -112,6 +134,9 @@ class Analyzer(object):
                 df = pd.read_csv(data_dir+f)
                 result.join(df)
         result.to_csv('%s/combined.csv' % (data_dir),encoding='utf-8')
+
+    #def missing_talk(self):
+        
 
 def job_script(args):
     f = open(args.job_script,'w')
@@ -147,7 +172,7 @@ def main():
     args = parser.parse_args()
     if args.job_script:
         job_script(args)
-    else:
+    else: 
         revert = []
         if args.revert:
             revert.append('len')
@@ -155,7 +180,7 @@ def main():
             revert.append('no_revert_len')
         a = Analyzer(args.lang,args.namespace,revert,args.drop1)
         if 'stats' in args.analysis:
-            a.edit_statistics(statistics=['total','var','std','mean','median','total_ratio','mean_ratio'])
+            a.edit_statistics(statistics=['total','var','std','mean','median','total_ratio','mean_ratio','missing_talk'])
         if 'dist' in args.analysis:
             a.edit_histogram()
         if 'quant' in args.analysis:
