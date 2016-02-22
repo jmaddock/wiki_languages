@@ -174,7 +174,7 @@ def job_script(args):
             if args.drop1:
                 out = '%s --drop1' % out
             print(out)
-            #f.write(out+'\n')
+            f.write(out+'\n')
 
 def main():
     parser = argparse.ArgumentParser(description='process wiki dumps')
