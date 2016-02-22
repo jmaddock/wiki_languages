@@ -2,8 +2,11 @@ import pandas as pd
 import plotly as py
 import os
 
-data_dir = '/Users/klogg/research_data/wiki_results/histograms/'
+data_dir = '/Users/klogg/research_data/wiki_results/ratio_histogram/'
+data_dir = '../results/ratio_histograms/'
 files = [f for f in os.listdir(data_dir) if f[3:8] == 't_len']
+#files = [f for f in os.listdir(data_dir)]
+print(files)
 
 for f in files:
     lang = f[:2]
@@ -30,4 +33,4 @@ for f in files:
     # IPython notebook
     # py.iplot(fig, filename='pandas/multiple-scatter')
 
-    py.offline.plot(fig, filename='../viz_results/%s_t_multiple-scatter.html' % lang)
+    py.offline.plot(fig, filename='../viz_results/%s_t_multiple-scatter_ratio.html' % lang)

@@ -100,6 +100,7 @@ class Analyzer(object):
         basic.log('creating edit quantiles %s' % self.lang)
         f_out = basic.create_dir('results/quantiles')
         df = pd.read_csv(self.db_path)
+        df.page_id = df.page_id.astype(int)
         if self.drop1:
             df = df.loc[(df['len'] > 1)]
         q = np.arange(q,1+q,q)
@@ -135,20 +136,37 @@ class Analyzer(object):
                 result.join(df)
         result.to_csv('%s/combined.csv' % (data_dir),encoding='utf-8')
 
-    #def missing_talk(self):
-        
+    def edit_ratio_histogram(self):
+        basic.log('creating edit histogram %s' % self.lang)
+        f_out = basic.create_dir('results/ratio_histograms')
+        df = pd.read_csv(self.db_path)
+        df.page_id = df.page_id.astype(float)
+        df = df.loc[df['linked_id'] != 'NONE']
+        if self.drop1:
+            df = df.loc[(df['len'] > 1)]
+        for r in self.revert:
+            basic.log('%s %s' % (self.lang,r))
+            n0 = df.loc[(df['namespace'] == 0)].set_index('page_id',drop=False)
+            n1 = df.loc[(df['namespace'] == 1)].set_index('linked_id',drop=False)
+            ratio = n0[r].divide(n1[r],axis='index').to_frame()
+            ratio.columns = ['ratio']
+            ratio = n0.join(ratio).set_index('page_id')
+            result = ratio['ratio'].value_counts()
+            result.columns = ['pages']
+            result.to_csv('%s/%s_%s.csv' % (f_out,self.lang,r),encoding='utf-8',index_label='edit_ratio')
 
 def job_script(args):
     f = open(args.job_script,'w')
     script_dir = os.path.abspath(__file__)
     lang_dir = os.path.join(os.path.dirname(__file__),os.pardir,'db/')
     langs = [name for name in os.listdir(lang_dir) if os.path.isdir(lang_dir+name)]
-    print(os.listdir(lang_dir))
     for a in args.analysis:
         for l in langs:
-            out = 'python3 %s -l %s -a %s -n' % (script_dir,l,a)
-            for n in args.namespace:
-                out = '%s %s' % (out,n)
+            out = 'python3 %s -l %s -a %s' % (script_dir,l,a)
+            if args.namespace:
+                out = '%s -n' (out)
+                for n in args.namespace:
+                    out = '%s %s' % (out,n)
             if args.revert:
                 out = '%s --revert' % out
             if args.no_revert:
@@ -156,13 +174,13 @@ def job_script(args):
             if args.drop1:
                 out = '%s --drop1' % out
             print(out)
-            f.write(out+'\n')
+            #f.write(out+'\n')
 
 def main():
     parser = argparse.ArgumentParser(description='process wiki dumps')
     parser.add_argument('-l','--lang')
     parser.add_argument('-a','--analysis',nargs='+')
-    parser.add_argument('-n','--namespace',nargs='+')
+    parser.add_argument('-n','--namespace',nargs='*')
     parser.add_argument('--revert',action='store_true')
     parser.add_argument('--no_revert',action='store_true')
     parser.add_argument('--f_out')
@@ -187,6 +205,8 @@ def main():
             a.edit_quantiles()
         if 'combine_quant' in args.analysis:
             a.combine_quantiles()
+        if 'erh' in args.analysis:
+            a.edit_ratio_histogram()
 
 if __name__ == "__main__":
     main()
