@@ -81,8 +81,11 @@ class CSV_Creator(object):
         d = {}
         d['page_id'] = page.id
         d['namespace'] = page.namespace
-        #d['title'] = page.title.split(':',1)[-1].replace('"','').strip()
-        d['title'] = page.title.replace('Talk:','').replace('"','').strip()
+        if page.namespace == 1:
+            d['title'] = page.title.split(':',1)[-1].replace('"','').strip()
+        else:
+            d['title'] = page.title.replace('"','').strip()
+        #d['title'] = page.title.replace('Talk:','').replace('"','').strip()
         for rev in page:
             r = {}
             if rev.contributor.user_text:
