@@ -142,17 +142,39 @@ class Analyzer(object):
         df = pd.read_csv(self.db_path)
         df.page_id = df.page_id.astype(float)
         df = df.loc[df['linked_id'] != 'NONE']
+        df.linked_id = df.linked_id.astype(float)
         if self.drop1:
             df = df.loc[(df['len'] > 1)]
         for r in self.revert:
             basic.log('%s %s' % (self.lang,r))
+            print(len(df))
             n0 = df.loc[(df['namespace'] == 0)].set_index('page_id',drop=False)
             n1 = df.loc[(df['namespace'] == 1)].set_index('linked_id',drop=False)
-            ratio = n0[r].divide(n1[r],axis='index').to_frame()
+            print(len(n0))
+            #print(n0)
+            #print(n1)
+            print(len(n1))
+            intersection = n0.index.intersection(n1.index)
+            print(len(intersection))
+            n0 = n0.loc[intersection]
+            n1 = n1.loc[intersection]
+            print(len(n0))
+            #print(n0)
+            #print(n1)
+            print(len(n1))
+            ratio = n0[r].divide(n1[r],axis='index',fill_value=-1).to_frame()
             ratio.columns = ['ratio']
+            #print(ratio.loc[ratio['ratio'] == 0])
+            ratio.ratio = ratio.ratio.astype(int)
             ratio = n0.join(ratio).set_index('page_id')
-            result = ratio['ratio'].value_counts()
+            #print(ratio)
+            #print(ratio.loc[ratio['ratio'] == 0])
+            result = ratio['ratio'].value_counts().to_frame()
+            result = result.sort_index(ascending=True)
+            #print(result)
+            result = result.loc[result.index >= 0]
             result.columns = ['pages']
+            #print(result)
             result.to_csv('%s/%s_%s.csv' % (f_out,self.lang,r),encoding='utf-8',index_label='edit_ratio')
 
 def job_script(args):
