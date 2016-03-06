@@ -124,7 +124,7 @@ class Analyzer(object):
                 result.columns = [column]
                 result = result.append(DataFrame({column:result.loc[(result[column] < int(mean+1))].tail(1).index.values},index=['mean_quantile']))
                 result = result.append(DataFrame({column:mean},index=['mean_value']))
-                print(result)
+                #print(result)
                 #result = result.append(DataFrame({column:}))
                 result.to_csv('%s/%s_%s_%s.csv' % (f_out,self.lang,n,r),encoding='utf-8',index_label='qauntiles')
 
