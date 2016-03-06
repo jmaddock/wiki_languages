@@ -3,7 +3,7 @@ import plotly as py
 import os
 import argparse
 
-def scatter(data_dir,namespace=None):
+def scatter(data_dir,out_name,namespace=None):
     #data_dir = '/Users/klogg/research_data/wiki_results/ratio_histogram/'
     #data_dir = '../results/ratio_histograms/'
     if namespace:
@@ -37,14 +37,15 @@ def scatter(data_dir,namespace=None):
         # IPython notebook
         # py.iplot(fig, filename='pandas/multiple-scatter')
 
-        py.offline.plot(fig, filename='../viz_results/%s_multiple-scatter_ratio.html' % (lang))
+        py.offline.plot(fig, filename='../viz_results/%s_%s.html' % (out_name,lang))
 
 def main():
     parser = argparse.ArgumentParser(description='process wiki dumps')
     parser.add_argument('-d','--data_dir')
+    parser.add_argument('-o','--out_name')
     parser.add_argument('-n','--namespace',nargs=1)
     args = parser.parse_args()
-    scatter(args.data_dir,args.namespace)
+    scatter(args.data_dir,args.out_name,args.namespace)
 
 if __name__ == "__main__":
     main()

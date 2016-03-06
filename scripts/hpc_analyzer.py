@@ -93,6 +93,7 @@ class Analyzer(object):
                     result = df[r].value_counts()
                 else:
                     result = df.loc[(df['namespace'] == self.namespace.index(n)),r].value_counts()
+                result = result.sort_index(ascending=True)
                 result.columns = ['articles']
                 result.to_csv('%s/%s_%s_%s.csv' % (f_out,self.lang,n,r),encoding='utf-8',index_label='edits')
 
@@ -200,7 +201,7 @@ def job_script(args):
         for l in langs:
             out = 'python3 %s -l %s -a %s' % (script_dir,l,a)
             if args.namespace:
-                out = '%s -n' (out)
+                out = '%s -n' % (out)
                 for n in args.namespace:
                     out = '%s %s' % (out,n)
             if args.revert:
