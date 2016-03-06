@@ -143,6 +143,8 @@ class Analyzer(object):
         df.page_id = df.page_id.astype(float)
         df = df.loc[df['linked_id'] != 'NONE']
         df.linked_id = df.linked_id.astype(float)
+        print('dropped %s duplicates' % len(df.duplicated(subset='page_id')))
+        df = df.drop_duplicates(subset='page_id',keep=False)
         if self.drop1:
             df = df.loc[(df['len'] > 1)]
         for r in self.revert:
@@ -173,8 +175,6 @@ class Analyzer(object):
             ratio.ratio = ratio.ratio.astype(int)
             ratio = n0.join(ratio).set_index('page_id')
             print(len(ratio))
-            print('dropped %s duplicates' % len(ratio.index.get_duplicates()))
-            ratio = ratio.drop_duplicates(subset='index',keep=False)
             #diff = ratio.index.difference(n0.index)
             #print(diff)
             #print(ratio)
