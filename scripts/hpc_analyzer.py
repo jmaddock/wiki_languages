@@ -152,6 +152,7 @@ class Analyzer(object):
             n1 = df.loc[(df['namespace'] == 1)].set_index('linked_id',drop=False)
             print(n0.index.get_duplicates())
             print(n1.index.get_duplicates())
+            print(n0.loc[208182.0])
             print(len(n0))
             #print(n0)
             #print(n1)
