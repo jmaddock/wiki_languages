@@ -143,38 +143,43 @@ class Analyzer(object):
         df.page_id = df.page_id.astype(float)
         df = df.loc[df['linked_id'] != 'NONE']
         df.linked_id = df.linked_id.astype(float)
-        print('dropped %s duplicates' % len(df.duplicated(subset='page_id')))
+        #print(df)
+        basic.log('dropped %s duplicates' % len(df.set_index('page_id',drop=False).index.get_duplicates()))
         df = df.drop_duplicates(subset='page_id',keep=False)
         if self.drop1:
             df = df.loc[(df['len'] > 1)]
         for r in self.revert:
             basic.log('%s %s' % (self.lang,r))
-            print(len(df))
+            basic.log('%s pages' % len(df))
             n0 = df.loc[(df['namespace'] == 0)].set_index('page_id',drop=False)
             n1 = df.loc[(df['namespace'] == 1)].set_index('linked_id',drop=False)
-            print(n0.index.get_duplicates())
-            print(n1.index.get_duplicates())
-            print(n0.loc[n0.index.get_duplicates()])
-            print(len(n0))
+            #print(n0.index.get_duplicates())
+            #print(n1.index.get_duplicates())
+            #print(n0.loc[n0.index.get_duplicates()])
+            basic.log('%s articles' % len(n0))
             #print(n0)
             #print(n1)
-            print(len(n1))
+            basic.log('%s talk' % len(n1))
             #intersection = n0.index.intersection(n1.index)
             #print(len(intersection))
             #t0 = n0.loc[intersection]
             #diff = t0.index.difference(n0.index)
             #print(diff)
             #t1 = n1.loc[intersection]
-            print(len(n0))
+            
             #print(n0)
             #print(n1)
-            print(len(n1))
+            #print(n1.loc[n1['len'] > 0])
             ratio = n0[r].divide(n1[r],axis='index',fill_value=-1).to_frame()
             ratio.columns = ['ratio']
-            #print(ratio.loc[ratio['ratio'] == 0])
+            #print(ratio.loc[ratio['ratio'] < 0])
+            #print(n0.loc[n0['page_id'] == 342910])
+            #print(n1.loc[n1['page_id'] == 342911])
+            #print(ratio.loc[(ratio['ratio'] < 0) & (ratio['ratio'] > -1)])
             ratio.ratio = ratio.ratio.astype(int)
             ratio = n0.join(ratio).set_index('page_id')
-            print(len(ratio))
+            ratio = ratio.loc[ratio['ratio'] >= 0]
+            basic.log('%s ratios' % len(ratio))
             #diff = ratio.index.difference(n0.index)
             #print(diff)
             #print(ratio)
@@ -182,9 +187,8 @@ class Analyzer(object):
             result = ratio['ratio'].value_counts().to_frame()
             result = result.sort_index(ascending=True)
             #print(result)
-            result = result.loc[result.index >= 0]
+            #print(result.loc[result.index < 0])
             result.columns = ['pages']
-            #print(result)
             result.to_csv('%s/%s_%s.csv' % (f_out,self.lang,r),encoding='utf-8',index_label='edit_ratio')
 
 def job_script(args):
