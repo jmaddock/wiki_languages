@@ -123,6 +123,7 @@ class Analyzer(object):
                 column = '%s_%s_%s' % (self.lang,n,r)
                 result.columns = [column]
                 result = result.append(DataFrame({column:mean},index=['mean_value']))
+                print(result)
                 result = result.append(DataFrame({column:result.loc[(result[column] == int(mean))].tail(1).index.values},index=['mean_quantile']))
                 #result = result.append(DataFrame({column:}))
                 result.to_csv('%s/%s_%s_%s.csv' % (f_out,self.lang,n,r),encoding='utf-8',index_label='qauntiles')
