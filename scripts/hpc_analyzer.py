@@ -150,6 +150,8 @@ class Analyzer(object):
             print(len(df))
             n0 = df.loc[(df['namespace'] == 0)].set_index('page_id',drop=False)
             n1 = df.loc[(df['namespace'] == 1)].set_index('linked_id',drop=False)
+            print(n0.index.get_duplicates())
+            print(n1.index.get_duplicates())
             print(len(n0))
             #print(n0)
             #print(n1)
