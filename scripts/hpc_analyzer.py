@@ -170,6 +170,8 @@ class Analyzer(object):
             ratio.ratio = ratio.ratio.astype(int)
             ratio = n0.join(ratio).set_index('page_id')
             print(len(ratio))
+            diff = ratio.index.difference(n0.index)
+            print(diff)
             #print(ratio)
             #print(ratio.loc[ratio['ratio'] == 0])
             result = ratio['ratio'].value_counts().to_frame()
