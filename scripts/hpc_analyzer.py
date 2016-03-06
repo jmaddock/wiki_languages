@@ -155,13 +155,15 @@ class Analyzer(object):
             #print(n1)
             print(len(n1))
             intersection = n0.index.intersection(n1.index)
+            diff = n0.index.difference(n1.index)
+            print(len(diff))
             print(len(intersection))
-            n00 = n0.loc[intersection]
-            n11 = n1.loc[intersection]
-            print(len(n00))
+            n0 = n0.loc[intersection]
+            n1 = n1.loc[intersection]
+            print(len(n0))
             #print(n0)
             #print(n1)
-            print(len(n11))
+            print(len(n1))
             ratio = n0[r].divide(n1[r],axis='index',fill_value=-1).to_frame()
             ratio.columns = ['ratio']
             #print(ratio.loc[ratio['ratio'] == 0])
