@@ -155,7 +155,7 @@ class Analyzer(object):
             #print(n1)
             print(len(n1))
             #intersection = n0.index.intersection(n1.index)
-            print(len(intersection))
+            #print(len(intersection))
             #t0 = n0.loc[intersection]
             #diff = t0.index.difference(n0.index)
             #print(diff)
