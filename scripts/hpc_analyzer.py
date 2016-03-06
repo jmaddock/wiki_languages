@@ -196,9 +196,9 @@ class Analyzer(object):
             result.columns = ['pages']
             result.to_csv('%s/%s_%s.csv' % (f_out,self.lang,r),encoding='utf-8',index_label='edit_ratio')
 
-        def drop_dups(self,df):
-            basic.log('dropped %s duplicates' % len(df.set_index('page_id',drop=False).index.get_duplicates()))
-            return df.drop_duplicates(subset='page_id',keep=False)
+    def drop_dups(self,df):
+        basic.log('dropped %s duplicates' % len(df.set_index('page_id',drop=False).index.get_duplicates()))
+        return df.drop_duplicates(subset='page_id',keep=False)
             
 
 def job_script(args):
