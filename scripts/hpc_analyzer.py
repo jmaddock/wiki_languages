@@ -73,7 +73,7 @@ class Analyzer(object):
                             result[self.lang][n][r][s] = float(result[self.lang]['a'][r]['mean'])/result[self.lang]['t'][r]['mean']
                     elif s == 'missing_talk':
                         if self.namespace.index(n) == (len(self.namespace)-1):
-                            result[self.lang][n][r][s] = df.loc[(df['linked_id'] == 'NONE')]
+                            result[self.lang][n][r][s] = len(df.loc[(df['linked_id'] == 'NONE')])
                     
                     f.write(',%s' % result[self.lang][n][r][s])
         f.write('\n')
