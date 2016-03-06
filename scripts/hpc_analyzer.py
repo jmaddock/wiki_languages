@@ -31,6 +31,7 @@ class Analyzer(object):
         f.write('"%s"' % self.lang)
         result[self.lang] = defaultdict(dict)
         df = pd.read_csv(self.db_path)
+        df = self.drop_dups(df)
         if self.drop1:
             df = df.loc[(df['len'] > 1)]
         for n in self.namespace:
@@ -84,6 +85,7 @@ class Analyzer(object):
         basic.log('creating edit histogram %s' % self.lang)
         f_out = basic.create_dir('results/histograms')
         df = pd.read_csv(self.db_path)
+        df = self.drop_dups(df)
         if self.drop1:
             df = df.loc[(df['len'] > 1)]
         for n in self.namespace:
@@ -101,6 +103,7 @@ class Analyzer(object):
         basic.log('creating edit quantiles %s' % self.lang)
         f_out = basic.create_dir('results/quantiles')
         df = pd.read_csv(self.db_path)
+        df = self.drop_dups(df)
         df.page_id = df.page_id.astype(int)
         if self.drop1:
             df = df.loc[(df['len'] > 1)]
@@ -145,6 +148,7 @@ class Analyzer(object):
         df = df.loc[df['linked_id'] != 'NONE']
         df.linked_id = df.linked_id.astype(float)
         #print(df)
+        df = self.drop_dups(df)
         basic.log('dropped %s duplicates' % len(df.set_index('page_id',drop=False).index.get_duplicates()))
         df = df.drop_duplicates(subset='page_id',keep=False)
         if self.drop1:
@@ -191,6 +195,11 @@ class Analyzer(object):
             #print(result.loc[result.index < 0])
             result.columns = ['pages']
             result.to_csv('%s/%s_%s.csv' % (f_out,self.lang,r),encoding='utf-8',index_label='edit_ratio')
+
+        def drop_dups(self,df):
+            basic.log('dropped %s duplicates' % len(df.set_index('page_id',drop=False).index.get_duplicates()))
+            return df.drop_duplicates(subset='page_id',keep=False)
+            
 
 def job_script(args):
     f = open(args.job_script,'w')
