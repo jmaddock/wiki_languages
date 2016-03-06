@@ -125,7 +125,7 @@ class Analyzer(object):
                 result = result.append(DataFrame({column:mean},index=['mean_value']))
                 print(result)
                 print(int(mean))
-                print(result.loc[(result[column] < int(mean+1))].tail(1))
+                print(result.loc[(result[column] < int(mean+1))])
                 result = result.append(DataFrame({column:result.loc[(result[column] < int(mean+1))].tail(1).index.values},index=['mean_quantile']))
                 print(result)
                 #result = result.append(DataFrame({column:}))
