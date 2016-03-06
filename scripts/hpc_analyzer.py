@@ -154,12 +154,12 @@ class Analyzer(object):
             #print(n0)
             #print(n1)
             print(len(n1))
-            intersection = n0.index.intersection(n1.index)
+            #intersection = n0.index.intersection(n1.index)
             print(len(intersection))
-            t0 = n0.loc[intersection]
-            diff = t0.index.difference(n0.index)
-            print(diff)
-            t1 = n1.loc[intersection]
+            #t0 = n0.loc[intersection]
+            #diff = t0.index.difference(n0.index)
+            #print(diff)
+            #t1 = n1.loc[intersection]
             print(len(n0))
             #print(n0)
             #print(n1)
@@ -169,6 +169,7 @@ class Analyzer(object):
             #print(ratio.loc[ratio['ratio'] == 0])
             ratio.ratio = ratio.ratio.astype(int)
             ratio = n0.join(ratio).set_index('page_id')
+            print(len(ratio))
             #print(ratio)
             #print(ratio.loc[ratio['ratio'] == 0])
             result = ratio['ratio'].value_counts().to_frame()
