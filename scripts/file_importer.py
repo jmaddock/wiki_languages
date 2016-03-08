@@ -138,7 +138,10 @@ def job_script(args):
     lang_dir = os.path.join(os.path.dirname(__file__),os.pardir,'db/')
     langs = [name for name in os.listdir(lang_dir) if os.path.isdir(lang_dir+name)]
     for l in langs:
-        out = 'python3 %s -l %s\n' % (script_dir,l)
+        out = 'python3 %s -l %s' % (script_dir,l)
+        if args.drop1:
+            out = out + ' --drop1'
+        out = out + '\n'
         print(out)
         f.write(out)
     
