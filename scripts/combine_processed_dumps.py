@@ -44,7 +44,7 @@ class Combine_Edit_Counts(Combine_Dumps):
         files = []
         for root, directories, filenames in os.walk(base_dir):
             for filename in filenames:
-                if 'linked_edit_counts.csv' in filename:
+                if 'linked_edit_counts.csv' in filename and 'simple' not in root:
                     files.append(os.path.join(root,filename))
         if self.debug:
             print(files)
