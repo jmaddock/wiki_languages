@@ -71,7 +71,7 @@ def job_script(args):
     f = open(args.job_script,'w')
     script_dir = os.path.abspath(__file__)
     lang_dir = os.path.join(os.path.dirname(__file__),os.pardir,'db/')
-    langs = [name for name in os.listdir(lang_dir) if os.path.isdir(lang_dir+name)]
+    langs = [name for name in os.listdir(lang_dir) if (os.path.isdir(lang_dir+name) and 'combined' not in name)]
     for l in langs:
         out = 'python3 %s -l %s\n' % (script_dir,l)
         print(out)
