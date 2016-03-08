@@ -19,19 +19,48 @@ class Combine_Dumps(object):
         files = []
         for f in os.listdir(db_dir):
             if f[:10] == 'raw_edits_':
-                files.append(f)
+                files.append(self.base_dir+f)
         return files
         
     def combine(self):
         for i,f in enumerate(self.files):
-            f_in = self.base_dir + f
+            f_in = f
             basic.log('added %s' % f_in)
             if i == 0:
                 result = pd.read_csv(f_in)
             else:
                 result = result.append(pd.read_csv(f_in))
-        result.to_csv(self.base_dir+self.f_out)
+        result.to_csv(self.f_out)
         basic.log('created %s' % self.f_out)
+
+class Combine_Edit_Counts(Combine_Dumps):
+    def __init__(self,base_dir,f_out):
+        self.f_out = f_out
+        Combine_Dumps.__init__(self,None,f_out,base_dir,True)
+
+    def get_files(self,base_dir):
+        files = []
+        print(self.f_out.split('/')[-1:])
+        for root, directories, filenames in os.walk(base_dir):
+            for filename in filenames:
+                if 'linked_edit_counts.csv' in filename:
+                    files.append(os.path.join(root,filename))
+        return files
+
+class Combine_Stats(Combine_Dumps):
+    def __init__(self,base_dir,f_out,drop1):
+        self.f_out = f_out
+        self.drop1 = drop1
+        Combine_Dumps.__init__(self,None,f_out,base_dir,True)
+
+    def get_files(self,base_dir):
+        print(self.f_out.split('/')[-1:])
+        if self.drop1:
+            files = [f for f in os.listdir(base_dir) if (f[-4:] == '.csv' and self.f_out.split('/')[-1:] not in f and 'drop1' in f)]
+        else:
+            files = [f for f in os.listdir(base_dir) if (f[-4:] == '.csv' and self.f_out.split('/')[-1:] not in f)]
+        print(files)
+        return files
 
 def job_script(args):
     f = open(args.job_script,'w')
@@ -50,6 +79,10 @@ def main():
     parser.add_argument('-b','--base_dir')
     parser.add_argument('-l','--lang')
     parser.add_argument('-o','--outfile')
+    parser.add_argument('--dumps',action='store_true')
+    parser.add_argument('--edit_counts',action='store_true')
+    parser.add_argument('--stats',action='store_true')
+    parser.add_argument('--drop1',action='store_true')
     parser.add_argument('-f','--files',nargs='*')
     parser.add_argument('-j','--job_script')
     args = parser.parse_args()
@@ -60,7 +93,13 @@ def main():
             base_dir = args.base_dir
         elif args.lang:
             base_dir = os.path.join(os.path.dirname(__file__),os.pardir,'db/%s/' % (args.lang))
-        c = Combine_Dumps(args.files,args.outfile,base_dir,args.lang)
+
+        if args.dumps:
+            c = Combine_Dumps(args.files,args.outfile,base_dir,args.lang)
+        elif args.edit_counts:
+            c = Combine_Edit_Counts(base_dir,args.outfile)
+        elif args.stats:
+            c = Combine_Stats(base_dir,args.outfile,args.drop1)
         c.combine()
 
 if __name__ == "__main__":
