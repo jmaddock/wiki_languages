@@ -29,10 +29,12 @@ class Page_Edit_Counter(object):
             print('creating dir: %s' % self.db_path)
             os.makedirs(self.db_path)
 
-    def link_documents(self,v=False):
+    def link_documents(self,f_in=None,v=False):
         basic.log('linking %s' % self.wiki_name)
-        f_in_name = '%s/edit_counts.csv' % self.db_path
-        f_in = pd.read_csv(f_in_name)
+        if not isinstance(f_in, pd.DataFrame):
+            f_in_name = '%s/edit_counts.csv' % self.db_path
+            basic.log('loading data from file %s' % f_in_name)
+            f_in = pd.read_csv(f_in_name)
         if self.drop1:
             f_in = f_in.loc[(f_in['len'] > 1)]
         n0 = f_in.loc[(f_in['namespace'] == 0)].set_index('title',drop=False)
@@ -50,7 +52,7 @@ class Page_Edit_Counter(object):
         result_path = '%s/linked_edit_counts.csv' % (self.db_path)
         columns = ['page_id','title','namespace','len','no_revert_len','num_editors','td','tds','lang','linked_id']
         result = self.drop_dups(result)
-        result.to_csv(result_path,na_rep='NONE',columns=columns,encoding='utf-8')
+        result.to_csv(result_path,na_rep='NaN',columns=columns,encoding='utf-8')
         return result
 
     ## drop of df duplicates based on page_id field
@@ -66,6 +68,7 @@ class Page_Edit_Counter(object):
     def rev_size(self,v=False):
         basic.log('creating %s edit counts' % self.wiki_name)
         f_in_name = '%s/combined_raw_edits.csv' % self.db_path
+        basic.log('loading data from file %s' % f_in_name)
         f_in = pd.read_csv(f_in_name)
         nr = f_in.loc[(f_in['revert'] == False)]
         df = f_in[['page_id','title','namespace']].drop_duplicates(subset='page_id').set_index('page_id',drop=False)
@@ -80,7 +83,7 @@ class Page_Edit_Counter(object):
         result['lang'] = self.wiki_name
         if self.drop1:
             result = result.loc[(result['len'] > 1)]
-        result.to_csv(result_path,na_rep='NONE',columns=columns,encoding='utf-8')
+        result.to_csv(result_path,na_rep='NaN',columns=columns,encoding='utf-8')
         if v:
             print(result)
         return result
@@ -101,6 +104,8 @@ class Page_Edit_Counter(object):
         result['page_id'] = result.index
         return result
 
+    ## get the number of unique editors who have contributed to a group of articles
+    ## return reduced dataframe
     def num_editors(self,df):
         basic.log('creating %s author counts' % self.wiki_name)
         df = df.groupby('page_id').user_text.nunique().to_frame()
@@ -108,6 +113,28 @@ class Page_Edit_Counter(object):
         df['page_id'] = df.index
         return df
 
+    def append_article_to_talk(self,df=None):
+        basic.log('merging %s namespaces into single dataframe' % self.wiki_name)
+        if not isinstance(df, pd.DataFrame):
+            f_in_name = '%s/linked_edit_counts.csv' % self.db_path
+            basic.log('loading data from file %s' % f_in_name)
+            df = pd.read_csv(f_in_name)
+        n0 = df.loc[(df['namespace'] == 0) & (df['linked_id'] != None)]
+        n0 = n0.rename(columns = {'linked_id':'to_merge'})
+        n0.to_merge = n0.to_merge.astype(float)
+        n1 = df.loc[(df['namespace'] == 1)]
+        n1 = n1.rename(columns = {'page_id':'to_merge'})
+        n1.to_merge = n1.to_merge.astype(float)
+        merged = n1.merge(n0,on='to_merge',how='inner',suffixes=['_1','_0'])
+        result_path = '%s/merged_edit_counts.csv' % (self.db_path)
+        merged = merged.rename(columns = {'to_merge':'page_id_1',
+                                          'linked_id':'page_id_0',
+                                          'title_1':'title',
+                                          'lang_1':'lang',})
+        columns = ['page_id_1','title','len_1','no_revert_len_1','num_editors_1','td_1','tds_1','lang','page_id_0','len_0','no_revert_len_0','num_editors_0','td_0','tds_0']
+        merged.to_csv(result_path,na_rep='NaN',columns=columns,encoding='utf-8')
+        return merged
+        
     def user_rev_size(self):
         f_in_name = '%s/combined_raw_edits.csv' % self.db_path
         f_in = pd.read_csv(f_in_name)
@@ -127,7 +154,7 @@ class Page_Edit_Counter(object):
         nrs = nr['page_id'].value_counts().to_frame('no_revert_len')
         result = df.join(s).join(nrs)
         result_path = '%s/edit_counts.csv' % (self.db_path)
-        result.to_csv(result_path,na_rep='NONE',columns=columns,encoding='utf-8')
+        result.to_csv(result_path,na_rep='NaN',columns=columns,encoding='utf-8')
         if v:
             print(result)
         return result
@@ -141,6 +168,12 @@ def job_script(args):
         out = 'python3 %s -l %s' % (script_dir,l)
         if args.drop1:
             out = out + ' --drop1'
+        if args.counts:
+            out = out + ' --counts'
+        if args.link:
+            out = out + ' --link'
+        if args.append:
+            out = out + ' --append'
         out = out + '\n'
         print(out)
         f.write(out)
@@ -151,6 +184,9 @@ def main():
     parser.add_argument('-b','--base_dir')
     parser.add_argument('-j','--job_script')
     parser.add_argument('--drop1',action='store_true')
+    parser.add_argument('--append',action='store_true')
+    parser.add_argument('--link',action='store_true')
+    parser.add_argument('--counts',action='store_true')
     #parser.add_argument('-i','--infile')
     #parser.add_argument('-o','--outfile')
     args = parser.parse_args()
@@ -161,8 +197,13 @@ def main():
             c = Page_Edit_Counter(args.lang,args.base_dir,drop1=args.drop1)
         else:
             c = Page_Edit_Counter(args.lang,drop1=args.drop1)
-        c.rev_size()
-        c.link_documents()
+        df = None
+        if args.counts:
+            df = c.rev_size()
+        if args.link:
+            df = c.link_documents(df)
+        if args.append:
+            df = c.append_article_to_talk(df)
                 
 if __name__ == "__main__":
     main()
