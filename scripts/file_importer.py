@@ -37,12 +37,15 @@ class Page_Edit_Counter(object):
             f_in = pd.read_csv(f_in_name)
         if self.drop1:
             f_in = f_in.loc[(f_in['len'] > 1)]
+        f_in.title = f_in.title.astype(str)
         n0 = f_in.loc[(f_in['namespace'] == 0)].set_index('title',drop=False)
         n1 = f_in.loc[(f_in['namespace'] == 1)].set_index('title',drop=False)
         l0 = f_in.loc[(f_in['namespace'] == 0)].set_index('title',drop=False)[['page_id']]
         l1 = f_in.loc[(f_in['namespace'] == 1)].set_index('title',drop=False)[['page_id']]
         l0.rename(columns = {'page_id':'linked_id'}, inplace = True)
         l1.rename(columns = {'page_id':'linked_id'}, inplace = True)
+        print(n0)
+        print(l1)
         result0 = n0.join(l1).set_index('page_id',drop=False)
         result1 = n1.join(l0).set_index('page_id',drop=False)
         result = result0.append(result1)
@@ -163,7 +166,7 @@ def job_script(args):
     f = open(args.job_script,'w')
     script_dir = os.path.abspath(__file__)
     lang_dir = os.path.join(os.path.dirname(__file__),os.pardir,'db/')
-    langs = [name for name in os.listdir(lang_dir) if os.path.isdir(lang_dir+name)]
+    langs = [name for name in os.listdir(lang_dir) if (os.path.isdir(lang_dir+name) and 'combined' not in name)]
     for l in langs:
         out = 'python3 %s -l %s' % (script_dir,l)
         if args.drop1:
