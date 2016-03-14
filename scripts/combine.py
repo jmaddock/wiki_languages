@@ -4,8 +4,12 @@ import basic
 import pandas as pd
 
 class Combine_Dumps(object):
-    def __init__(self,files,f_out,base_dir,lang):
+    def __init__(self,files,f_out,base_dir,lang,n=None):
         self.base_dir = base_dir
+        if n:
+            self.n = int(n)
+        else:
+            self.n = n
         if lang and not files:
             self.files = self.get_files(self.base_dir)
         else:
@@ -29,16 +33,21 @@ class Combine_Dumps(object):
                 basic.log('added %s' % f_in)
                 if i == 0:
                     result = pd.read_csv(f_in)
+                    if self.n:
+                        result = result.head(self.n)
                 else:
-                    result = result.append(pd.read_csv(f_in))
+                    df = pd.read_csv(f_in)
+                    if self.n:
+                        df = df.head(self.n)
+                    result = result.append(df)
             result.to_csv(self.f_out)
             basic.log('created %s' % self.f_out)
 
 class Combine_Edit_Counts(Combine_Dumps):
-    def __init__(self,base_dir,f_out,debug=False):
+    def __init__(self,base_dir,f_out,debug=False,n=None):
         self.f_out = f_out
         self.debug = debug
-        Combine_Dumps.__init__(self,None,f_out,base_dir,True)
+        Combine_Dumps.__init__(self,None,f_out,base_dir,True,n=n)
 
     def get_files(self,base_dir):
         files = []
@@ -84,6 +93,7 @@ def main():
     parser.add_argument('-b','--base_dir')
     parser.add_argument('-l','--lang')
     parser.add_argument('-o','--outfile')
+    parser.add_argument('-n','--num')
     parser.add_argument('--dumps',action='store_true')
     parser.add_argument('--edit_counts',action='store_true')
     parser.add_argument('--stats',action='store_true')
@@ -99,11 +109,13 @@ def main():
             base_dir = args.base_dir
         elif args.lang:
             base_dir = os.path.join(os.path.dirname(__file__),os.pardir,'db/%s/' % (args.lang))
+        else:
+            base_dir = os.path.join(os.path.dirname(__file__),os.pardir,'db/')
 
         if args.dumps:
             c = Combine_Dumps(args.files,args.outfile,base_dir,args.lang)
         elif args.edit_counts:
-            c = Combine_Edit_Counts(base_dir,args.outfile,args.debug)
+            c = Combine_Edit_Counts(base_dir,args.outfile,args.debug,args.num)
         elif args.stats:
             c = Combine_Stats(base_dir,args.outfile,args.drop1)
         c.combine()
