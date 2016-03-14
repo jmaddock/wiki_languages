@@ -44,8 +44,6 @@ class Page_Edit_Counter(object):
         l1 = f_in.loc[(f_in['namespace'] == 1)].set_index('title',drop=False)[['page_id']]
         l0.rename(columns = {'page_id':'linked_id'}, inplace = True)
         l1.rename(columns = {'page_id':'linked_id'}, inplace = True)
-        print(n0)
-        print(l1)
         result0 = n0.join(l1).set_index('page_id',drop=False)
         result1 = n1.join(l0).set_index('page_id',drop=False)
         result = result0.append(result1)
