@@ -4,7 +4,7 @@ require(MASS)
 require(quantreg)
 
 # read csv from file
-dat = read.csv('../db/combined/combined_merged_edit_counts_1000.csv')
+dat = read.csv('../db/combined/combined_merged_edit_counts.csv')
 # factor language varriable into dummies
 dat <- within(dat, lang <- factor(lang))
 # choose which dummy to use as reference
