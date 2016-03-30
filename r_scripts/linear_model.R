@@ -4,14 +4,18 @@ require(MASS)
 require(quantreg)
 
 ## read csv from file
-
-dat <- read.csv('../db/combined/combined_merged_edit_counts.csv')
+args <- commandArgs(trailingOnly = TRUE)
+print(args[1])
+dat <- read.csv(args[1])
 
 ## factor language varriable into dummies
 dat <- within(dat, lang <- factor(lang))
 ## choose which dummy to use as reference
 dat <- within(dat, lang <- relevel(lang, ref = 'de'))
 
+# get correlation matrix
+cor_header<- c('len_1','tds_1','num_editors_1','len_0','num_editors_0','tds_1')
+cor(dat[cor_header])
 
 # plot districutions
 #ggplot(dat, aes(len_1, fill = lang)) +
@@ -25,17 +29,19 @@ dat <- within(dat, lang <- relevel(lang, ref = 'de'))
 
 ## negative binomial models
 ## basic model with only talk level vars
-summary(nb1 <- glm.nb(len_1 ~ num_editors_1 + tds_1, data = dat, maxit = 100))
+print('*** negative binomial models ***')
+nb1 <- glm.nb(len_1 ~ num_editors_1 + tds_1, data = dat, maxit = 100)
 ## added article controls
-summary(nb2 <- glm.nb(len_1 ~ tds_1 + num_editors_1 + len_0 + num_editors_0 + tds_1, data = dat, maxit = 100))
+nb2 <- glm.nb(len_1 ~ tds_1 + num_editors_1 + len_0 + num_editors_0 + tds_1, data = dat, maxit = 100)
 ## added langs
-summary(nb3 <- glm.nb(len_1 ~ tds_1 + num_editors_1 + len_0 + num_editors_0 + tds_1 + lang, data = dat, maxit = 100))
+nb3 <- glm.nb(len_1 ~ tds_1 + num_editors_1 + len_0 + num_editors_0 + tds_1 + lang, data = dat, maxit = 100)
 
 ## anova basic and article models
-anova(nb1,nb2)
+anova(nb1,nb2,nb3)
 ## anova article and lang models
 anova(nb2,nb3)
 
+print('*** liniar models ***')
 ## basic model with only talk level vars
 summary(lm1 <- lm(len_1 ~ num_editors_1 + tds_1, data = dat))
 ## added article controls
@@ -46,6 +52,7 @@ summary(lm3 <- lm(len_1 ~ tds_1 + num_editors_1 + len_0 + num_editors_0 + tds_1 
 anova(lm1,lm2)
 anova(lm2,lm3)
 
+print('*** quantile models ***')
 ## basic model with only talk level vars
 summary(rq1 <- rq(len_1 ~ num_editors_1 + tds_1, data = dat, tau = .5))
 ## added article controls
