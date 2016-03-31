@@ -11,9 +11,9 @@ dat <- read.csv(args[1])
 ## factor language varriable into dummies
 dat <- within(dat, lang <- factor(lang))
 ## choose which dummy to use as reference
-dat <- within(dat, lang <- relevel(lang, ref = 'de'))
+dat <- within(dat, lang <- relevel(lang, ref = "de"))
 
 # get correlation matrix
-cor_header<- c('len_1','tds_1','num_editors_1','len_0','num_editors_0','tds_1')
+cor_header <- c("tds_1","num_editors_1","len_0","num_editors_0","tds_0")
 cor(dat[cor_header])
 
