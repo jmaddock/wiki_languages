@@ -15,5 +15,5 @@ dat <- within(dat, lang <- relevel(lang, ref = "de"))
 
 # get correlation matrix
 cor_header <- c("tds_1","num_editors_1","len_0","num_editors_0","tds_0")
-cor(dat[cor_header])
+print(cor(dat[cor_header]))
 
