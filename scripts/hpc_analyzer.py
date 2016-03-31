@@ -147,7 +147,7 @@ class Analyzer(object):
         f_out = basic.create_dir('results/ratio_histograms')
         df = pd.read_csv(self.db_path)
         df.page_id = df.page_id.astype(float)
-        df = df.loc[df['linked_id'] != 'NONE']
+        df = df.loc[df['linked_id'] != None]
         df.linked_id = df.linked_id.astype(float)
         df = self.drop_dups(df)
         basic.log('dropped %s duplicates' % len(df.set_index('page_id',drop=False).index.get_duplicates()))

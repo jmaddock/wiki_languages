@@ -133,8 +133,44 @@ class Page_Edit_Counter(object):
                                           'title_1':'title',
                                           'lang_1':'lang',})
         columns = ['page_id_1','title','len_1','no_revert_len_1','num_editors_1','td_1','tds_1','lang','page_id_0','len_0','no_revert_len_0','num_editors_0','td_0','tds_0']
+        if 'ratio' in merged.columns.values:
+            columns.append('ratio')
         merged.to_csv(result_path,na_rep='NaN',columns=columns,encoding='utf-8')
         return merged
+
+    def edit_ratios(self,df=None,r='len'):
+        basic.log('creating edit ratios %s' % self.wiki_name)
+        if not isinstance(df, pd.DataFrame):
+            f_in_name = '%s/linked_edit_counts.csv' % self.db_path
+            basic.log('loading data from file %s' % f_in_name)
+            df = pd.read_csv(f_in_name)
+        df.page_id = df.page_id.astype(float)
+        df = df.loc[df['linked_id'] != None]
+        df.linked_id = df.linked_id.astype(float)
+        df = self.drop_dups(df)
+        basic.log('dropped %s duplicates' % len(df.set_index('page_id',drop=False).index.get_duplicates()))
+        df = df.drop_duplicates(subset='page_id',keep=False)
+        if self.drop1:
+            df = df.loc[(df['len'] > 1)]
+        basic.log('%s' % (self.wiki_name))
+        basic.log('%s pages' % len(df))
+        n0 = df.loc[(df['namespace'] == 0)].set_index('page_id',drop=False)
+        n1 = df.loc[(df['namespace'] == 1)].set_index('linked_id',drop=False)
+        basic.log('%s articles' % len(n0))
+        basic.log('%s talk' % len(n1))
+        ratio = n0[r].divide(n1[r],axis='index',fill_value=-1).to_frame()
+        ratio.columns = ['ratio']
+        ratio.ratio = ratio.ratio.astype(int)
+        ratio = n0.join(ratio).set_index('page_id')
+        ratio = ratio.loc[ratio['ratio'] >= 0]
+        basic.log('%s ratios' % len(ratio))
+        ratio.append(n1)
+        ratio = self.append_article_to_talk(ratio)
+        len(ratio)
+        print(ratio)
+        result_path = '%s/merged_edit_ratios.csv' % (self.db_path)
+        merged.to_csv(result_path,na_rep='NaN',columns=columns,encoding='utf-8')
+        return ratio
         
     def user_rev_size(self):
         f_in_name = '%s/combined_raw_edits.csv' % self.db_path
@@ -188,6 +224,7 @@ def main():
     parser.add_argument('--append',action='store_true')
     parser.add_argument('--link',action='store_true')
     parser.add_argument('--counts',action='store_true')
+    parser.add_argument('--ratio',action='store_true')
     #parser.add_argument('-i','--infile')
     #parser.add_argument('-o','--outfile')
     args = parser.parse_args()
@@ -203,7 +240,9 @@ def main():
             df = c.rev_size()
         if args.link:
             df = c.link_documents(df)
-        if args.append:
+        if args.ratio:
+            df = c.edit_ratios(df)
+        elif args.append:
             df = c.append_article_to_talk(df)
                 
 if __name__ == "__main__":
