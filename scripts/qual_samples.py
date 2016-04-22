@@ -10,7 +10,6 @@ def get_files(base_dir,target_name,debug=False):
                 files.append(os.path.join(root,filename))
     if debug:
         print(files)
-        return None
     else:
         return files
 
@@ -35,7 +34,7 @@ def read_edit_counts(path):
     return edit_counts
     
 def main():
-    files = get_files('../db/','edit_counts',True)
+    files = get_files('../db/','edit_counts.csv',debug=True)
     #get_quantiles('simple',[.5,.9,.99])
     for f in files:
         d = read_edit_counts(f)
