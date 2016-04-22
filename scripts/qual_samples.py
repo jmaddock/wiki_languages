@@ -5,7 +5,7 @@ import pandas as pd
 ROOT_DIR = '../db/'
 EDIT_COUT_FILE_NAME = 'edit_counts.csv'
 
-def get_files(base_dir,target_name,debug=v):
+def get_files(base_dir,target_name,v=False):
     files = []
     for root, directories, filenames in os.walk(base_dir):
         for filename in filenames:
