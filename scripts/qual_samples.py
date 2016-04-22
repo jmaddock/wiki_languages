@@ -9,7 +9,7 @@ def get_files(base_dir,target_name,v=False):
     files = []
     for root, directories, filenames in os.walk(base_dir):
         for filename in filenames:
-            if target_name in filename and 'simple' not in root and 'combine' not in root:
+            if target_name == filename and 'simple' not in root and 'combine' not in root:
                 files.append(os.path.join(root,filename))
     if v:
         print(files)
