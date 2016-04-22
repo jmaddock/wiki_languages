@@ -2,6 +2,9 @@ from hpc_analyzer import Analyzer
 import os
 import pandas as pd
 
+ROOT_DIR = '../db/'
+EDIT_COUT_FILE_NAME = 'edit_counts.csv'
+
 def get_files(base_dir,target_name,debug=False):
     files = []
     for root, directories, filenames in os.walk(base_dir):
@@ -10,8 +13,7 @@ def get_files(base_dir,target_name,debug=False):
                 files.append(os.path.join(root,filename))
     if debug:
         print(files)
-    else:
-        return files
+    return files
 
 def get_quantiles(lang,quantiles):
     ns = ['t']
