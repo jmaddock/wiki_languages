@@ -15,7 +15,7 @@ class WD_Downloader(object):
                 print('creating dir: %s' % new_dir)
                 os.makedirs(new_dir)
 
-    def download(self,file_type):
+    def download(self,file_type,date):
         wd = urllib.URLopener()
         for lang in self.langs:
             print('downloading %s' % lang)
@@ -23,11 +23,15 @@ class WD_Downloader(object):
             exit_loop = False
             while not exit_loop:
                 if counter == 0:
-                    base_url = r'https://dumps.wikimedia.org/%swiki/latest/%swiki-latest-pages-meta-%s.xml.7z' % (lang,lang,file_type)
-                    target_file = r'%s/%s/%swiki-latest-pages-meta-%s%s.xml.7z' % (self.target_dir,lang,lang,file_type,(counter+1))
+                    base_url = r'https://dumps.wikimedia.org/%swiki/%s/%swiki-%s-pages-meta-%s.xml.7z' % (lang,date,lang,date,file_type)
+                    target_file = r'%s/%s/%swiki-%s-pages-meta-%s%s.xml.7z' % (self.target_dir,lang,date,lang,date,file_type,(counter+1))
                 else:
-                    base_url = r'https://dumps.wikimedia.org/%swiki/latest/%swiki-latest-pages-meta-%s%s.xml.7z' % (lang,lang,file_type,counter)
-                    target_file = r'%s/%s/%swiki-latest-pages-meta-%s%s.xml.7z' % (self.target_dir,lang,lang,file_type,counter)
+                    if self.lang == 'en':
+                        base_url = r'https://dumps.wikimedia.org/%swiki/%s/%swiki-%s-pages-meta-%s%s.xml*.7z' % (lang,date,lang,date,file_type,counter)
+                        target_file = r'%s/%s/%swiki-%s-pages-meta-%s%s.xml*.7z' % (self.target_dir,lang,date,lang,date,file_type,counter)
+                    else:
+                        base_url = r'https://dumps.wikimedia.org/%swiki/%s/%swiki-%s-pages-meta-%s%s.xml.7z' % (lang,date,lang,date,file_type,counter)
+                        target_file = r'%s/%s/%swiki-%s-pages-meta-%s%s.xml.7z' % (self.target_dir,lang,date,lang,date,file_type,counter)
                 print('url: %s' % base_url)
                 print('target file: %s' % target_file)
                 try:
@@ -45,6 +49,7 @@ class WD_Downloader(object):
 def main():
     parser = argparse.ArgumentParser(description='download wiki data')
     parser.add_argument('-b','--target_dir')
+    parser.add_argument('-d','--date')
     parser.add_argument('-l','--langs',nargs='+')
     parser.add_argument('--history',action='store_true')
     parser.add_argument('--current',action='store_true')
@@ -56,10 +61,14 @@ def main():
     #target_dir = r'/Volumes/SupahFast2/jim/wiki_11_13_2015'
     d = WD_Downloader(target_dir,args.langs)
     d.make_dirs()
+    if args.date:
+        date = str(args.date)
+    else:
+        date = 'latest'
     if args.history:
-        d.download('history')
+        d.download('history',date)
     if args.current:
-        d.download('current')
+        d.download('current',date)
 
 if __name__ == "__main__":
     main()

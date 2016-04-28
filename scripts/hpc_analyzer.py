@@ -99,7 +99,7 @@ class Analyzer(object):
                 result.columns = ['articles']
                 result.to_csv('%s/%s_%s_%s.csv' % (f_out,self.lang,n,r),encoding='utf-8',index_label='edits')
 
-    def edit_quantiles(self,q=.01,quantile_range=False,v=False):
+    def edit_quantiles(self,q=.01,quantile_range=False,v=False,write=True):
         basic.log('creating edit quantiles %s' % self.lang)
         f_out = basic.create_dir('results/quantiles')
         df = pd.read_csv(self.db_path)
@@ -108,7 +108,9 @@ class Analyzer(object):
         if self.drop1:
             df = df.loc[(df['len'] > 1)]
         q = np.arange(q,1+q,q)
+        results = defaultdict(dict)
         for n in self.namespace:
+            results[n] = defaultdict(dict)
             for r in self.revert:
                 basic.log('%s %s %s' % (self.lang,n,r))
                 if n == 'at':
@@ -122,11 +124,12 @@ class Analyzer(object):
                 result = result.to_frame()
                 column = '%s_%s_%s' % (self.lang,n,r)
                 result.columns = [column]
-                result = result.append(DataFrame({column:result.loc[(result[column] < int(mean+1))].tail(1).index.values},index=['mean_quantile']))
-                result = result.append(DataFrame({column:mean},index=['mean_value']))
-                #print(result)
-                #result = result.append(DataFrame({column:}))
-                result.to_csv('%s/%s_%s_%s.csv' % (f_out,self.lang,n,r),encoding='utf-8',index_label='qauntiles')
+                results[n][r] = {'quantiles':result,'mean':mean}
+                if write:
+                    result = result.append(DataFrame({column:result.loc[(result[column] < int(mean+1))].tail(1).index.values},index=['mean_quantile']))
+                    result = result.append(DataFrame({column:mean},index=['mean_value']))
+                    result.to_csv('%s/%s_%s_%s.csv' % (f_out,self.lang,n,r),encoding='utf-8',index_label='qauntiles')
+        return results
 
     def combine_quantiles(self):
         data_dir = os.path.join(os.path.dirname(__file__),os.pardir,'results/quantiles/')
