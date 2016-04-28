@@ -46,8 +46,8 @@ def main():
     parser = argparse.ArgumentParser(description='download wiki data')
     parser.add_argument('-b','--target_dir')
     parser.add_argument('-l','--langs',nargs='+')
-    parser.add_argument('-h','--history',action='store_true')
-    parser.add_argument('-c','--current',action='store_true')
+    parser.add_argument('--history',action='store_true')
+    parser.add_argument('--current',action='store_true')
     args = parser.parse_args()
     if args.target_dir:
         target_dir = args.target_dir
