@@ -114,7 +114,7 @@ class Page_Edit_Counter(object):
         df['page_id'] = df.index
         return df
 
-    def append_article_to_talk(self,df=None):
+    def append_article_to_talk(self,df=None,write=True):
         basic.log('merging %s namespaces into single dataframe' % self.wiki_name)
         if not isinstance(df, pd.DataFrame):
             f_in_name = '%s/linked_edit_counts.csv' % self.db_path
@@ -125,17 +125,22 @@ class Page_Edit_Counter(object):
         n0.to_merge = n0.to_merge.astype(float)
         n1 = df.loc[(df['namespace'] == 1)]
         n1 = n1.rename(columns = {'page_id':'to_merge'})
+        #print(n1)
+        #print(n0.loc[n0['editor_ratio'] == None])
         n1.to_merge = n1.to_merge.astype(float)
         merged = n1.merge(n0,on='to_merge',how='inner',suffixes=['_1','_0'])
         result_path = '%s/merged_edit_counts.csv' % (self.db_path)
+        #print(merged.columns.values)
         merged = merged.rename(columns = {'to_merge':'page_id_1',
                                           'linked_id':'page_id_0',
                                           'title_1':'title',
-                                          'lang_1':'lang',})
+                                          'lang_1':'lang'})
         columns = ['page_id_1','title','len_1','no_revert_len_1','num_editors_1','td_1','tds_1','lang','page_id_0','len_0','no_revert_len_0','num_editors_0','td_0','tds_0']
-        if 'ratio' in merged.columns.values:
-            columns.append('ratio')
-        merged.to_csv(result_path,na_rep='NaN',columns=columns,encoding='utf-8')
+        if 'ratio_0' in merged.columns.values:
+            merged = merged.rename(columns = {'ratio_0':'ratio','editor_ratio_0':'editor_ratio'})
+            columns = columns + ['ratio','editor_ratio']
+        if write:
+            merged.to_csv(result_path,na_rep='NaN',columns=columns,encoding='utf-8')
         return merged
 
     def edit_ratios(self,df=None,r='len'):
@@ -154,23 +159,35 @@ class Page_Edit_Counter(object):
             df = df.loc[(df['len'] > 1)]
         basic.log('%s' % (self.wiki_name))
         basic.log('%s pages' % len(df))
-        n0 = df.loc[(df['namespace'] == 0)].set_index('page_id',drop=False)
-        n1 = df.loc[(df['namespace'] == 1)].set_index('linked_id',drop=False)
+        n0 = df.loc[(df['namespace'] == 0) & (df['linked_id'] != None)].set_index('page_id',drop=False)
+        n1 = df.loc[(df['namespace'] == 1) & (df['linked_id'] != None)].set_index('linked_id',drop=False)
         basic.log('%s articles' % len(n0))
         basic.log('%s talk' % len(n1))
         ratio = n0[r].divide(n1[r],axis='index',fill_value=-1).to_frame()
         ratio.columns = ['ratio']
         ratio.ratio = ratio.ratio.astype(int)
-        ratio = n0.join(ratio).set_index('page_id')
-        ratio = ratio.loc[ratio['ratio'] >= 0]
+        editor_ratio = n0['num_editors'].divide(n1['num_editors'],axis='index',fill_value=-1).to_frame()
+        editor_ratio.columns = ['editor_ratio']
+        editor_ratio.editor_ratio = editor_ratio.editor_ratio.astype(int)
+        #print(editor_ratio)
+        ratio = n0.join(ratio).join(editor_ratio).set_index('page_id')
+        #print(ratio)
+        ratio = ratio.loc[(ratio['ratio'] >= 0) & (ratio['editor_ratio'] >= 0)]
         basic.log('%s ratios' % len(ratio))
-        ratio.append(n1)
-        ratio = self.append_article_to_talk(ratio)
-        len(ratio)
-        print(ratio)
+        ratio = ratio.rename(columns = {'page_id.1':'page_id'})
+        merged = ratio.merge(n1,left_index=True,right_index=True,how='outer',suffixes=['_0','_1']).dropna()
+        print(merged)
+        #ratio = self.append_article_to_talk(ratio,write=False)
+        print(len(ratio))
+        print(len(merged))
+        #print(merged.columns.values)
         result_path = '%s/merged_edit_ratios.csv' % (self.db_path)
+        merged = merged.rename(columns = {'title_1':'title',
+                                          'lang_1':'lang'})
+        columns = ['page_id_1','title','len_1','no_revert_len_1','num_editors_1','td_1','tds_1','lang','page_id_0','len_0','no_revert_len_0','num_editors_0','td_0','tds_0','ratio','editor_ratio']
         merged.to_csv(result_path,na_rep='NaN',columns=columns,encoding='utf-8')
-        return ratio
+        #print(ratio)
+        return merged
         
     def user_rev_size(self):
         f_in_name = '%s/combined_raw_edits.csv' % self.db_path

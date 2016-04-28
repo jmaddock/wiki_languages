@@ -24,11 +24,21 @@ def get_quantiles(lang,quantiles):
     result = q.loc[quantiles]
     return result
 
-def get_pages(quantile,edit_counts,n,v):
-    sample = edit_counts.loc[(edit_counts['namespace'] == 1) & (edit_counts['len'] > quantile)].sample(n=n)
+## takes a list of quantiles and a list of edit_counts
+## both lists must be the same length
+def get_pages(quantiles,edit_counts,n,v):
+    sample_list = pd.DataFrame()
+    for q in quantiles:
+        sample = edi_counts.loc[(edit_counts['namespace'] == 1) & (edit_counts['len'] == q)].sample(n=n)
+        sample_list.append(sample)
+        if v:
+            print(sample)
     if v:
-        print(sample)
-    return sample
+        print(sample_list)
+    return sample_list
+
+def write_to_csv(df,f_out):
+    columns = ['id','lang','percentile','title','templating','index_box','unique_authors']
 
 def read_edit_counts(path,v=False):
     edit_counts = pd.read_csv(path)
@@ -42,7 +52,7 @@ def main():
     #get_quantiles('simple',[.5,.9,.99])
     for f in files:
         d = read_edit_counts(f)
-        get_pages(100,d,2,v=True)
+        get_pages([100,75],d,2,v=True)
     
 if __name__ == "__main__":
     main()
