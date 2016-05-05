@@ -1,5 +1,9 @@
 venv/
 scripts/__pycache__/
+*.pyc
+*.RData
 data
 db
 coding
+viz_results
+results
