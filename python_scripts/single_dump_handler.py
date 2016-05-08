@@ -70,7 +70,7 @@ class CSV_Creator(object):
         self.dh = Single_Dump_Handler(f_in)
         db_file = open(f_out,'w')
         db_file.write('"page_id","namespace","title","user_text","user_id","revert","ts"\n')
-        if debug is not False:
+        if debug is not None:
             self.dh.open_dump()
         else:
             self.dh.process_dump()
