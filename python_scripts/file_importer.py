@@ -7,6 +7,7 @@ import datetime
 import basic
 import json
 import argparse
+import config
 
 ## TO START MONGOD INSTANCE ON OMNI:
 ## mongod --dbpath ~/jim/wiki_data/mongodb_data/ --fork --logpath ~/jim/wiki_data/mongodb_data/logs/mongodb.log
@@ -68,9 +69,9 @@ class Page_Edit_Counter(object):
     ## INCLUDES TIMEDELTA AND NUM_EDITORS
     def rev_size(self,v=False):
         basic.log('creating %s edit counts' % self.wiki_name)
-        f_in_name = '%s/combined_raw_edits.csv' % self.db_path
+        f_in_name = '%s/%s' % (self.db_path,config.COMBINED_RAW_EDITS)
         basic.log('loading data from file %s' % f_in_name)
-        f_in = pd.read_csv(f_in_name)
+        f_in = pd.read_csv(f_in_name,escapechar='//')
         nr = f_in.loc[(f_in['revert'] == False)]
         df = f_in[['page_id','title','namespace']].drop_duplicates(subset='page_id').set_index('page_id',drop=False)
         s = f_in['page_id'].value_counts().to_frame('len')
@@ -213,11 +214,24 @@ class Page_Edit_Counter(object):
             print(result)
         return result
 
+    def document_robustness_checks(self,f_in):
+        basic.log('running document tests')
+        df = pd.read_csv(f_in,escapechar='\\')
+        assert len(df) == self.edit_count
+        basic.log('passed edit count test: iteration count and document line count match')
+        assert len(df['page_id'].unique()) == self.page_count
+        basic.log('passed page count test: iteration count and unique page_id match')
+        assert len(df.loc[df['namespace'] == 0]['title'].unique()) == len(df.loc[df['namespace'] == 0]['page_id'].unique())
+        assert len(df.loc[df['namespace'] == 1]['title'].unique()) == len(df.loc[df['namespace'] == 1]['page_id'].unique())
+        basic.log('passed title uniqueness test: equal number of unique titles and page_ids')
+        assert len(df.loc[(df['namespace'] >= 0) & (df['namespace'] <= 1)]) == len(df)
+        basic.log('passed namespace test: namespaces equal 0 or 1')
+
+
 def job_script(args):
     f = open(args.job_script,'w')
     script_dir = os.path.abspath(__file__)
-    lang_dir = os.path.join(os.path.dirname(__file__),os.pardir,'db/')
-    langs = [name for name in os.listdir(lang_dir) if (os.path.isdir(lang_dir+name) and 'combined' not in name)]
+    langs = [name for name in os.listdir(config.ROOT_PROCESSED_DIR) if (os.path.isdir(os.path.join(config.ROOT_PROCESSED_DIR,name)) and 'combined' not in name)]
     for l in langs:
         out = 'python3 %s -l %s' % (script_dir,l)
         if args.drop1:

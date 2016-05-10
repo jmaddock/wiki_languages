@@ -89,10 +89,12 @@ class CSV_Creator(object):
         d = {}
         d['page_id'] = page.id
         d['namespace'] = page.namespace
+        d['title'] = page.title.replace('\\',''.join((config.ESCAPE_CHAR,'\\'))).strip()
         if page.namespace == 1:
-            d['title'] = page.title.split(':',1)[-1].replace('"','').strip()
+            d['title'] = page.title.split(':',1)[-1].replace('"',''.join((config.ESCAPE_CHAR,'"'))).strip()
         else:
-            d['title'] = page.title.replace('"',config.QUOTE_ESCAPE_CHAR).strip()
+            d['title'] = page.title.replace('"',''.join((config.ESCAPE_CHAR,'""'))).strip()
+        
         #d['title'] = page.title.replace('Talk:','').replace('"','').strip()
         for rev in page:
             r = {}
@@ -115,12 +117,12 @@ class CSV_Creator(object):
 
     def document_robustness_checks(self,f_in):
         basic.log('running document tests')
-        df = pd.read_csv(f_in,escapechar=config.QUOTE_ESCAPE_CHAR)
+        df = pd.read_csv(f_in,escapechar=config.ESCAPE_CHAR)
         assert len(df) == self.edit_count
         basic.log('passed edit count test: iteration count and document line count match')
         assert len(df['page_id'].unique()) == self.page_count
         basic.log('passed page count test: iteration count and unique page_id match')
-q        assert len(df.loc[df['namespace'] == 0]['title'].unique()) == len(df.loc[df['namespace'] == 0]['page_id'].unique())
+        assert len(df.loc[df['namespace'] == 0]['title'].unique()) == len(df.loc[df['namespace'] == 0]['page_id'].unique())
         assert len(df.loc[df['namespace'] == 1]['title'].unique()) == len(df.loc[df['namespace'] == 1]['page_id'].unique())
         basic.log('passed title uniqueness test: equal number of unique titles and page_ids')
         assert len(df.loc[(df['namespace'] >= 0) & (df['namespace'] <= 1)]) == len(df)
