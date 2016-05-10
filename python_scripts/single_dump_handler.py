@@ -89,11 +89,10 @@ class CSV_Creator(object):
         d = {}
         d['page_id'] = page.id
         d['namespace'] = page.namespace
-        d['title'] = page.title.replace('\\',''.join((config.ESCAPE_CHAR,'\\'))).strip()
         if page.namespace == 1:
-            d['title'] = page.title.split(':',1)[-1].replace('"',''.join((config.ESCAPE_CHAR,'"'))).strip()
+            d['title'] = page.title.split(':',1)[-1].replace('"',config.QUOTE_ESCAPE_CHAR).strip()
         else:
-            d['title'] = page.title.replace('"',''.join((config.ESCAPE_CHAR,'""'))).strip()
+            d['title'] = page.title.replace('"',config.QUOTE_ESCAPE_CHAR).strip()
         
         #d['title'] = page.title.replace('Talk:','').replace('"','').strip()
         for rev in page:
@@ -117,7 +116,7 @@ class CSV_Creator(object):
 
     def document_robustness_checks(self,f_in):
         basic.log('running document tests')
-        df = pd.read_csv(f_in,escapechar=config.ESCAPE_CHAR)
+        df = pd.read_csv(f_in,na_values={'title':''},keep_default_na=False)
         assert len(df) == self.edit_count
         basic.log('passed edit count test: iteration count and document line count match')
         assert len(df['page_id'].unique()) == self.page_count
