@@ -1,6 +1,7 @@
 import os
 import argparse
 import basic
+import config
 import pandas as pd
 
 class Combine_Dumps(object):
@@ -17,12 +18,12 @@ class Combine_Dumps(object):
         if f_out:
             self.f_out = f_out
         else:
-            self.f_out = 'combined_raw_edits.csv'
+            self.f_out = os.path.join(self.base_dir,config.COMBINED_RAW_EDITS)
 
     def get_files(self,db_dir):
         files = []
         for f in os.listdir(db_dir):
-            if f[:10] == 'raw_edits_':
+            if f[:len(config.COMBINED_RAW_EDITS)] == config.COMBINED_RAW_EDITS:
                 files.append(self.base_dir+f)
         return files
         

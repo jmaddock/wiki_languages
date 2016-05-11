@@ -12,6 +12,8 @@ import config
 ## TO START MONGOD INSTANCE ON OMNI:
 ## mongod --dbpath ~/jim/wiki_data/mongodb_data/ --fork --logpath ~/jim/wiki_data/mongodb_data/logs/mongodb.log
 
+SCRIPT_DIR = os.path.abspath(__file__)
+
 class Page_Edit_Counter(object):
     def __init__(self,wiki_name,db_path=None,namespace=['a','t','at'],revert=['len','no_revert_len'],drop1=False):
         basic.log('creating importer...')
@@ -71,7 +73,7 @@ class Page_Edit_Counter(object):
         basic.log('creating %s edit counts' % self.wiki_name)
         f_in_name = '%s/%s' % (self.db_path,config.COMBINED_RAW_EDITS)
         basic.log('loading data from file %s' % f_in_name)
-        f_in = pd.read_csv(f_in_name,escapechar='//')
+        f_in = pd.read_csv(f_in_name,na_values={'title':''},keep_default_na=False)
         nr = f_in.loc[(f_in['revert'] == False)]
         df = f_in[['page_id','title','namespace']].drop_duplicates(subset='page_id').set_index('page_id',drop=False)
         s = f_in['page_id'].value_counts().to_frame('len')
@@ -214,26 +216,56 @@ class Page_Edit_Counter(object):
             print(result)
         return result
 
-    def document_robustness_checks(self,f_in):
-        basic.log('running document tests')
-        df = pd.read_csv(f_in,escapechar='\\')
-        assert len(df) == self.edit_count
-        basic.log('passed edit count test: iteration count and document line count match')
-        assert len(df['page_id'].unique()) == self.page_count
-        basic.log('passed page count test: iteration count and unique page_id match')
-        assert len(df.loc[df['namespace'] == 0]['title'].unique()) == len(df.loc[df['namespace'] == 0]['page_id'].unique())
-        assert len(df.loc[df['namespace'] == 1]['title'].unique()) == len(df.loc[df['namespace'] == 1]['page_id'].unique())
-        basic.log('passed title uniqueness test: equal number of unique titles and page_ids')
-        assert len(df.loc[(df['namespace'] >= 0) & (df['namespace'] <= 1)]) == len(df)
-        basic.log('passed namespace test: namespaces equal 0 or 1')
+class Robustness_Tester(object):
 
+    def __init__(self,drop1,lang):
+        basic.log('loading test module')
+        self.drop1 = drop1
+        self.lang = lang
+
+    def page_test(self,edit_df_path,page_df_path):
+        basic.log('running basic document tests')
+        edit_df = pd.read_csv(edit_df_path,na_values={'title':''},keep_default_na=False)
+        page_df = pd.read_csv(page_df_path,na_values={'title':''},keep_default_na=False)
+        if self.drop1:
+            edit_counts = edit_df['page_id'].value_counts().to_frame('values')
+            edit_counts = edit_counts.loc[edit_counts['values'] > 1]
+            edit_df = edit_df.loc[edit_df['page_id'].isin(edit_counts.index.values)]
+        assert len(edit_df) > 0
+        assert len(page_df) > 0
+        assert len(page_df['page_id'].unique()) == len(page_df['page_id'])
+        basic.log('passed page_id uniqueness test')
+        assert len(edit_df['page_id'].unique()) == len(page_df)
+        basic.log('passed page_id test: same number of unique page_ids in both documents')
+        title_counts = page_df['title'].value_counts().to_frame('values')
+        assert len(title_counts.loc[title_counts['values'] > 2]) == 0
+        basic.log('passed title uniqueness test: num titles <= 2')
+        assert len(page_df['title'].unique()) == len(edit_df['title'].unique())
+        basic.log('passed title uniqueness test: both documents have same number of unique titles')
+        assert len(page_df.loc[(page_df['namespace'] < 0) & (page_df['namespace'] > 1)]) == 0
+        basic.log('passed namespace test: namespaces are 0 or 1')
+        assert page_df['len'].sum() == len(edit_df)
+        basic.log('passed edit count test: edit counts sum to page edit counts')
+        assert len(page_df['lang'].unique()) == 1
+        assert page_df['lang'].unique()[0] == self.lang
+        basic.log('passed lang test')
+
+    def linked_test(self,edit_df_path,page_df_path,linked_df_path):
+        self.page_test(edit_df_path,linked_df_path)
+        linked_df = pd.read_csv(linked_df_path,na_values={'title':''},keep_default_na=False)
+        linked_ids = linked_df['linked_id'].value_counts().to_frame('values')
+        assert len(linked_ids.loc[linked_ids['values'] > 1]) == 0
+        basic.log('passed linked ids test: documents link to no more than 1 document')
+
+            
 
 def job_script(args):
+    # create the job script file, passed in command line params with -j flag
     f = open(args.job_script,'w')
-    script_dir = os.path.abspath(__file__)
+    # get a list of language dirs if lang isn't specified
     langs = [name for name in os.listdir(config.ROOT_PROCESSED_DIR) if (os.path.isdir(os.path.join(config.ROOT_PROCESSED_DIR,name)) and 'combined' not in name)]
     for l in langs:
-        out = 'python3 %s -l %s' % (script_dir,l)
+        out = 'python3 %s -l %s' % (SCRIPT_DIR,l)
         if args.drop1:
             out = out + ' --drop1'
         if args.counts:
@@ -256,8 +288,8 @@ def main():
     parser.add_argument('--link',action='store_true')
     parser.add_argument('--counts',action='store_true')
     parser.add_argument('--ratio',action='store_true')
-    #parser.add_argument('-i','--infile')
-    #parser.add_argument('-o','--outfile')
+    parser.add_argument('-i','--infile')
+    parser.add_argument('-o','--outfile')
     args = parser.parse_args()
     if args.job_script:
         job_script(args)
@@ -266,11 +298,17 @@ def main():
             c = Page_Edit_Counter(args.lang,args.base_dir,drop1=args.drop1)
         else:
             c = Page_Edit_Counter(args.lang,drop1=args.drop1)
+        t = Robustness_Tester(args.drop1,args.lang)
         df = None
+        edit_df_path = os.path.join(config.ROOT_PROCESSED_DIR,args.lang,config.COMBINED_RAW_EDITS)
+        page_df_path = os.path.join(config.ROOT_PROCESSED_DIR,args.lang,config.EDIT_COUNTS)
+        linked_df_path = os.path.join(config.ROOT_PROCESSED_DIR,args.lang,config.LINKED_EDIT_COUNTS)
         if args.counts:
             df = c.rev_size()
+            t.page_test(edit_df_path,page_df_path)
         if args.link:
             df = c.link_documents(df)
+            t.linked_test(edit_df_path,page_df_path,linked_df_path)
         if args.ratio:
             df = c.edit_ratios(df)
         elif args.append:
