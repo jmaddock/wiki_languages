@@ -26,7 +26,7 @@ class Combine_Dumps(object):
         files = []
         for f in os.listdir(db_dir):
             if f[:len(config.COMBINED_RAW_EDITS)] == config.COMBINED_RAW_EDITS:
-                files.append(self.base_dir+f)
+                files.append(os.path.join(self.base_dir,f))
         return files
         
     def combine(self):
@@ -35,11 +35,11 @@ class Combine_Dumps(object):
                 f_in = f
                 basic.log('added %s' % f_in)
                 if i == 0:
-                    result = pd.read_csv(f_in)
+                    result = pd.read_csv(f_in,na_values={'title':''},keep_default_na=False)
                     if self.n:
                         result = result.head(self.n)
                 else:
-                    df = pd.read_csv(f_in)
+                    df = pd.read_csv(f_in,na_values={'title':''},keep_default_na=False)
                     if self.n:
                         df = df.head(self.n)
                     result = result.append(df)
