@@ -287,6 +287,8 @@ def job_script(args):
             out = out + ' --link'
         if args.append:
             out = out + ' --append'
+        if args.ratio:
+            out = out + ' --ratio'
         out = out + '\n'
         print(out)
         f.write(out)
