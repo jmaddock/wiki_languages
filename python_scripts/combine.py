@@ -4,6 +4,8 @@ import basic
 import config
 import pandas as pd
 
+SCRPT_DIR = os.path.abspath(__file__)
+
 class Combine_Dumps(object):
     def __init__(self,files,f_out,base_dir,lang,n=None):
         self.base_dir = base_dir
@@ -79,11 +81,18 @@ class Combine_Stats(Combine_Dumps):
 
 def job_script(args):
     f = open(args.job_script,'w')
-    script_dir = os.path.abspath(__file__)
-    lang_dir = os.path.join(os.path.dirname(__file__),os.pardir,'db/')
-    langs = [name for name in os.listdir(lang_dir) if (os.path.isdir(lang_dir+name) and 'combined' not in name and 'simple' not in name)]
+    langs = [name for name in os.listdir(config.ROOT_PROCESSED_DIR) if (os.path.isdir(config.ROOT_PROCESSED_DIR+name) and 'combined' not in name and 'simple' not in name)]
     for l in langs:
-        out = 'python3 %s -l %s\n' % (script_dir,l)
+        out = 'python3 {0} -l {1}'.format(SCRPT_DIR,l)
+        if args.dumps:
+            out = '{0} --dumps'.format(out)
+        if args.edit_counts:
+            out = '{0} --edit_counts'.format(out)
+        if args.stats:
+            out = '{0} --stats'.format(out)
+        if args.drop1:
+            out = '{0} --drop1'.format(out)
+        out = '{0}\n'.format(out)
         print(out)
         f.write(out)
 
@@ -109,9 +118,9 @@ def main():
         if args.base_dir:
             base_dir = args.base_dir
         elif args.lang:
-            base_dir = os.path.join(os.path.dirname(__file__),os.pardir,'db/%s/' % (args.lang))
+            base_dir = os.path.join(config.ROOT_PROCESSED_DIR,args.lang)
         else:
-            base_dir = os.path.join(os.path.dirname(__file__),os.pardir,'db/')
+            base_dir = os.path.join(config.ROOT_PROCESSED_DIR)
 
         if args.dumps:
             c = Combine_Dumps(args.files,args.outfile,base_dir,args.lang)
