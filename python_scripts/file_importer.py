@@ -123,6 +123,7 @@ class Page_Edit_Counter(object):
             f_in_name = '%s/linked_edit_counts.csv' % self.db_path
             basic.log('loading data from file %s' % f_in_name)
             df = pd.read_csv(f_in_name)
+        print(df)
         n0 = df.loc[(df['namespace'] == 0) & (df['linked_id'] != None)]
         n0 = n0.rename(columns = {'linked_id':'to_merge'})
         n0.to_merge = n0.to_merge.astype(float)
@@ -132,7 +133,7 @@ class Page_Edit_Counter(object):
         #print(n0.loc[n0['editor_ratio'] == None])
         n1.to_merge = n1.to_merge.astype(float)
         merged = n1.merge(n0,on='to_merge',how='inner',suffixes=['_1','_0'])
-        result_path = '%s/merged_edit_counts.csv' % (self.db_path)
+        result_path = os.path.join(self.db_path,config.MERGED_EDIT_COUNTS)
         #print(merged.columns.values)
         merged = merged.rename(columns = {'to_merge':'page_id_1',
                                           'linked_id':'page_id_0',
@@ -179,10 +180,7 @@ class Page_Edit_Counter(object):
         basic.log('%s ratios' % len(ratio))
         ratio = ratio.rename(columns = {'page_id.1':'page_id'})
         merged = ratio.merge(n1,left_index=True,right_index=True,how='outer',suffixes=['_0','_1']).dropna()
-        print(merged)
         #ratio = self.append_article_to_talk(ratio,write=False)
-        print(len(ratio))
-        print(len(merged))
         #print(merged.columns.values)
         result_path = '%s/merged_edit_ratios.csv' % (self.db_path)
         merged = merged.rename(columns = {'title_1':'title',
@@ -257,7 +255,22 @@ class Robustness_Tester(object):
         assert len(linked_ids.loc[linked_ids['values'] > 1]) == 0
         basic.log('passed linked ids test: documents link to no more than 1 document')
 
-            
+    def merged_test(self,linked_df_path,merged_df_path):
+        merged_df = pd.read_csv(merged_df_path,na_values={'title':''},keep_default_na=False)
+        linked_df = pd.read_csv(linked_df_path,na_values={'title':''},keep_default_na=False)
+        linked_df = linked_df.loc[~linked_df['linked_id'].isnull()]
+        assert len(linked_df) > 0
+        assert len(merged_df) > 0
+        assert len(merged_df['page_id_1'].unique()) == len(merged_df['page_id_1'])
+        assert len(merged_df['page_id_0'].unique()) == len(merged_df['page_id_0'])
+        basic.log('passed page_id uniqueness test')
+        assert len(merged_df.loc[merged_df['page_id_1'].isin(merged_df['page_id_0'])]) == 0
+        basic.log('passed page_id test: articles and talk have different ids')
+        assert len(merged_df) == len(linked_df.loc[linked_df['namespace'] == 1])
+        basic.log('passed length test: correct number of talk articles')
+        assert merged_df['len_1'].sum() == linked_df.loc[linked_df['namespace'] == 1]['len'].sum()
+        assert merged_df['len_0'].sum() == linked_df.loc[linked_df['namespace'] == 0]['len'].sum()
+        basic.log('passed edit count test: correct number of edits')
 
 def job_script(args):
     # create the job script file, passed in command line params with -j flag
@@ -303,6 +316,7 @@ def main():
         edit_df_path = os.path.join(config.ROOT_PROCESSED_DIR,args.lang,config.COMBINED_RAW_EDITS)
         page_df_path = os.path.join(config.ROOT_PROCESSED_DIR,args.lang,config.EDIT_COUNTS)
         linked_df_path = os.path.join(config.ROOT_PROCESSED_DIR,args.lang,config.LINKED_EDIT_COUNTS)
+        merged_df_path = os.path.join(config.ROOT_PROCESSED_DIR,args.lang,config.MERGED_EDIT_COUNTS)
         if args.counts:
             df = c.rev_size()
             t.page_test(edit_df_path,page_df_path)
@@ -311,8 +325,9 @@ def main():
             t.linked_test(edit_df_path,page_df_path,linked_df_path)
         if args.ratio:
             df = c.edit_ratios(df)
-        elif args.append:
+        if args.append:
             df = c.append_article_to_talk(df)
+            t.merged_test(linked_df_path,merged_df_path)
                 
 if __name__ == "__main__":
     main()
