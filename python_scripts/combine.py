@@ -25,7 +25,7 @@ class Combine_Dumps(object):
     def get_files(self,db_dir):
         files = []
         for f in os.listdir(db_dir):
-            if f[:len(config.COMBINED_RAW_EDITS)] == config.COMBINED_RAW_EDITS:
+            if f[:len(config.RAW_EDITS_BASE)] == config.RAW_EDITS_BASE:
                 files.append(os.path.join(self.base_dir,f))
         return files
         
