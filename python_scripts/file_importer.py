@@ -21,7 +21,7 @@ class Page_Edit_Counter(object):
         self.revert = revert
         self.wiki_name = wiki_name
         if not db_path:
-            self.db_path = os.path.join(os.path.dirname(__file__),os.pardir,'db/') + wiki_name
+            self.db_path = os.path.join(config.ROOT_PROCESSED_DIR,wiki_name)
         else:
             self.db_path = db_path
         self.create_db_dir()
@@ -35,9 +35,9 @@ class Page_Edit_Counter(object):
     def link_documents(self,f_in=None,v=False):
         basic.log('linking %s' % self.wiki_name)
         if not isinstance(f_in, pd.DataFrame):
-            f_in_name = '%s/edit_counts.csv' % self.db_path
+            f_in_name = os.path.join(self.db_path,config.EDIT_COUNTS)
             basic.log('loading data from file %s' % f_in_name)
-            f_in = pd.read_csv(f_in_name)
+            f_in = pd.read_csv(f_in_name,na_values={'title':''},keep_default_na=False,dtype={'title': object})
         if self.drop1:
             f_in = f_in.loc[(f_in['len'] > 1)]
         f_in.title = f_in.title.astype(str)
@@ -53,7 +53,7 @@ class Page_Edit_Counter(object):
         if v:
             print(result)
         result['page_id'] = result.index
-        result_path = '%s/linked_edit_counts.csv' % (self.db_path)
+        result_path = os.path.join(self.db_path,config.LINKED_EDIT_COUNTS)
         columns = ['page_id','title','namespace','len','no_revert_len','num_editors','td','tds','lang','linked_id']
         result = self.drop_dups(result)
         result.to_csv(result_path,na_rep='NaN',columns=columns,encoding='utf-8')
@@ -71,9 +71,9 @@ class Page_Edit_Counter(object):
     ## INCLUDES TIMEDELTA AND NUM_EDITORS
     def rev_size(self,v=False):
         basic.log('creating %s edit counts' % self.wiki_name)
-        f_in_name = '%s/%s' % (self.db_path,config.COMBINED_RAW_EDITS)
+        f_in_name = os.path.join(self.db_path,config.COMBINED_RAW_EDITS)
         basic.log('loading data from file %s' % f_in_name)
-        f_in = pd.read_csv(f_in_name,na_values={'title':''},keep_default_na=False)
+        f_in = pd.read_csv(f_in_name,na_values={'title':''},keep_default_na=False,dtype={'title': object})
         nr = f_in.loc[(f_in['revert'] == False)]
         df = f_in[['page_id','title','namespace']].drop_duplicates(subset='page_id').set_index('page_id',drop=False)
         s = f_in['page_id'].value_counts().to_frame('len')
@@ -223,8 +223,8 @@ class Robustness_Tester(object):
 
     def page_test(self,edit_df_path,page_df_path):
         basic.log('running basic document tests')
-        edit_df = pd.read_csv(edit_df_path,na_values={'title':''},keep_default_na=False)
-        page_df = pd.read_csv(page_df_path,na_values={'title':''},keep_default_na=False)
+        edit_df = pd.read_csv(edit_df_path,na_values={'title':''},keep_default_na=False,dtype={'title': object})
+        page_df = pd.read_csv(page_df_path,na_values={'title':''},keep_default_na=False,dtype={'title': object})
         if self.drop1:
             edit_counts = edit_df['page_id'].value_counts().to_frame('values')
             edit_counts = edit_counts.loc[edit_counts['values'] > 1]
@@ -250,14 +250,14 @@ class Robustness_Tester(object):
 
     def linked_test(self,edit_df_path,page_df_path,linked_df_path):
         self.page_test(edit_df_path,linked_df_path)
-        linked_df = pd.read_csv(linked_df_path,na_values={'title':''},keep_default_na=False)
+        linked_df = pd.read_csv(linked_df_path,na_values={'title':''},keep_default_na=False,dtype={'title': object})
         linked_ids = linked_df['linked_id'].value_counts().to_frame('values')
         assert len(linked_ids.loc[linked_ids['values'] > 1]) == 0
         basic.log('passed linked ids test: documents link to no more than 1 document')
 
     def merged_test(self,linked_df_path,merged_df_path):
-        merged_df = pd.read_csv(merged_df_path,na_values={'title':''},keep_default_na=False)
-        linked_df = pd.read_csv(linked_df_path,na_values={'title':''},keep_default_na=False)
+        merged_df = pd.read_csv(merged_df_path,na_values={'title':''},keep_default_na=False,dtype={'title': object})
+        linked_df = pd.read_csv(linked_df_path,na_values={'title':''},keep_default_na=False,dtype={'title': object})
         linked_df = linked_df.loc[~linked_df['linked_id'].isnull()]
         assert len(linked_df) > 0
         assert len(merged_df) > 0
