@@ -1,4 +1,4 @@
-from mw import xml_dump,Timestamp
+pd.from mw import xml_dump,Timestamp
 from collections import Counter
 import single_dump_handler
 import pandas as pd
@@ -79,7 +79,7 @@ class Page_Edit_Counter(object):
         s = f_in['page_id'].value_counts().to_frame('len')
         nrs = nr['page_id'].value_counts().to_frame('no_revert_len')
         result = df.join(s).join(nrs)
-        result_path = '%s/edit_counts.csv' % (self.db_path)
+        result_path = os.path.join(self.db_path,config.EDIT_COUNTS)
         columns = ['page_id','title','namespace','len','no_revert_len','num_editors','td','tds','lang']
         age = self.page_age(f_in)
         editors = self.num_editors(f_in)
@@ -120,10 +120,9 @@ class Page_Edit_Counter(object):
     def append_article_to_talk(self,df=None,write=True):
         basic.log('merging %s namespaces into single dataframe' % self.wiki_name)
         if not isinstance(df, pd.DataFrame):
-            f_in_name = '%s/linked_edit_counts.csv' % self.db_path
+            f_in_name = os.path.join(self.db_path,config.LINKED_EDIT_COUNTS)
             basic.log('loading data from file %s' % f_in_name)
-            df = pd.read_csv(f_in_name)
-        print(df)
+            df = pd.read_csv(f_in_name,na_values={'title':''},keep_default_na=False,dtype={'title': object})
         n0 = df.loc[(df['namespace'] == 0) & (df['linked_id'] != None)]
         n0 = n0.rename(columns = {'linked_id':'to_merge'})
         n0.to_merge = n0.to_merge.astype(float)
@@ -150,9 +149,9 @@ class Page_Edit_Counter(object):
     def edit_ratios(self,df=None,r='len'):
         basic.log('creating edit ratios %s' % self.wiki_name)
         if not isinstance(df, pd.DataFrame):
-            f_in_name = '%s/linked_edit_counts.csv' % self.db_path
+            f_in_name = os.path.join(self.db_path,config.LINKED_EDIT_COUNTS)
             basic.log('loading data from file %s' % f_in_name)
-            df = pd.read_csv(f_in_name)
+            df = pd.read_csv(f_in_name,na_values={'title':''},keep_default_na=False,dtype={'title': object})
         df.page_id = df.page_id.astype(float)
         df = df.loc[df['linked_id'] != None]
         df.linked_id = df.linked_id.astype(float)
@@ -182,7 +181,7 @@ class Page_Edit_Counter(object):
         merged = ratio.merge(n1,left_index=True,right_index=True,how='outer',suffixes=['_0','_1']).dropna()
         #ratio = self.append_article_to_talk(ratio,write=False)
         #print(merged.columns.values)
-        result_path = '%s/merged_edit_ratios.csv' % (self.db_path)
+        result_path =  os.path.join(self.db_path,config.MERGED_EDIT_RATIOS)
         merged = merged.rename(columns = {'title_1':'title',
                                           'lang_1':'lang'})
         columns = ['page_id_1','title','len_1','no_revert_len_1','num_editors_1','td_1','tds_1','lang','page_id_0','len_0','no_revert_len_0','num_editors_0','td_0','tds_0','ratio','editor_ratio']
@@ -192,7 +191,7 @@ class Page_Edit_Counter(object):
         
     def user_rev_size(self):
         f_in_name = '%s/combined_raw_edits.csv' % self.db_path
-        f_in = pd.read_csv(f_in_name)
+        f_in = pd.read_csv(f_in_name,na_values={'title':''},keep_default_na=False,dtype={'title': object})
         columns = ['user_id','user_text']
         results = {}
         for n in self.namespace:
@@ -319,6 +318,7 @@ def main():
         page_df_path = os.path.join(config.ROOT_PROCESSED_DIR,args.lang,config.EDIT_COUNTS)
         linked_df_path = os.path.join(config.ROOT_PROCESSED_DIR,args.lang,config.LINKED_EDIT_COUNTS)
         merged_df_path = os.path.join(config.ROOT_PROCESSED_DIR,args.lang,config.MERGED_EDIT_COUNTS)
+        ratio_df_path = os.path.join(config.ROOT_PROCESSED_DIR,args.lang,config.MERGED_EDIT_RATIOS)
         if args.counts:
             df = c.rev_size()
             t.page_test(edit_df_path,page_df_path)
@@ -327,6 +327,7 @@ def main():
             t.linked_test(edit_df_path,page_df_path,linked_df_path)
         if args.ratio:
             df = c.edit_ratios(df)
+            t.merged_test(linked_df_path,ratio_df_path)
         if args.append:
             df = c.append_article_to_talk(df)
             t.merged_test(linked_df_path,merged_df_path)
