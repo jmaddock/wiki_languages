@@ -56,7 +56,7 @@ class Combine_Edit_Counts(Combine_Dumps):
             self.base_file_name = config.MERGED_EDIT_COUNTS
         Combine_Dumps.__init__(self,None,f_out,base_dir,True,n=n)
 
-    def get_files(self,base_dir,ratio):
+    def get_files(self,base_dir):
         files = []
         for root, directories, filenames in os.walk(base_dir):
             for filename in filenames:
