@@ -1,4 +1,4 @@
-pd.from mw import xml_dump,Timestamp
+from mw import xml_dump,Timestamp
 from collections import Counter
 import single_dump_handler
 import pandas as pd
@@ -8,6 +8,8 @@ import basic
 import json
 import argparse
 import config
+
+## --ratio and --merge FLAGS MUST BE USED WITH LOADED .CSV FILE
 
 ## TO START MONGOD INSTANCE ON OMNI:
 ## mongod --dbpath ~/jim/wiki_data/mongodb_data/ --fork --logpath ~/jim/wiki_data/mongodb_data/logs/mongodb.log
@@ -153,7 +155,7 @@ class Page_Edit_Counter(object):
             basic.log('loading data from file %s' % f_in_name)
             df = pd.read_csv(f_in_name,na_values={'title':''},keep_default_na=False,dtype={'title': object})
         df.page_id = df.page_id.astype(float)
-        df = df.loc[df['linked_id'] != None]
+        df = df.loc[~df['linked_id'].isnull()]
         df.linked_id = df.linked_id.astype(float)
         df = self.drop_dups(df)
         basic.log('dropped %s duplicates' % len(df.set_index('page_id',drop=False).index.get_duplicates()))
@@ -162,8 +164,8 @@ class Page_Edit_Counter(object):
             df = df.loc[(df['len'] > 1)]
         basic.log('%s' % (self.wiki_name))
         basic.log('%s pages' % len(df))
-        n0 = df.loc[(df['namespace'] == 0) & (df['linked_id'] != None)].set_index('page_id',drop=False)
-        n1 = df.loc[(df['namespace'] == 1) & (df['linked_id'] != None)].set_index('linked_id',drop=False)
+        n0 = df.loc[(df['namespace'] == 0) & (~df['linked_id'].isnull())].set_index('page_id',drop=False)
+        n1 = df.loc[(df['namespace'] == 1) & (~df['linked_id'].isnull())].set_index('linked_id',drop=False)
         basic.log('%s articles' % len(n0))
         basic.log('%s talk' % len(n1))
         ratio = n0[r].divide(n1[r],axis='index',fill_value=-1).to_frame()
@@ -179,11 +181,12 @@ class Page_Edit_Counter(object):
         basic.log('%s ratios' % len(ratio))
         ratio = ratio.rename(columns = {'page_id.1':'page_id'})
         merged = ratio.merge(n1,left_index=True,right_index=True,how='outer',suffixes=['_0','_1']).dropna()
+        #print(merged)
         #ratio = self.append_article_to_talk(ratio,write=False)
         #print(merged.columns.values)
         result_path =  os.path.join(self.db_path,config.MERGED_EDIT_RATIOS)
         merged = merged.rename(columns = {'title_1':'title',
-                                          'lang_1':'lang'})
+                                          'lang_1':'lang',})
         columns = ['page_id_1','title','len_1','no_revert_len_1','num_editors_1','td_1','tds_1','lang','page_id_0','len_0','no_revert_len_0','num_editors_0','td_0','tds_0','ratio','editor_ratio']
         merged.to_csv(result_path,na_rep='NaN',columns=columns,encoding='utf-8')
         #print(ratio)
@@ -291,7 +294,9 @@ def job_script(args):
         out = out + '\n'
         print(out)
         f.write(out)
-    
+
+## --ratio and --merge FLAGS MUST BE USED WITH LOADED .CSV FILE
+
 def main():
     parser = argparse.ArgumentParser(description='process wiki data')
     parser.add_argument('-l','--lang')
