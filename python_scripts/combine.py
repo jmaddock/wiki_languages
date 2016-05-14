@@ -47,7 +47,7 @@ class Combine_Dumps(object):
             basic.log('created %s' % self.f_out)
 
 class Combine_Edit_Counts(Combine_Dumps):
-    def __init__(self,base_dir,f_out,debug=False,n=None):
+    def __init__(self,base_dir,f_out,ratio=False,debug=False,n=None):
         self.f_out = f_out
         self.debug = debug
         if ratio:
@@ -110,6 +110,7 @@ def main():
     parser.add_argument('-n','--num')
     parser.add_argument('--dumps',action='store_true')
     parser.add_argument('--edit_counts',action='store_true')
+    parser.add_argument('--ratio',action='store_true') 
     parser.add_argument('--stats',action='store_true')
     parser.add_argument('--drop1',action='store_true')
     parser.add_argument('--debug',action='store_true')
@@ -129,7 +130,9 @@ def main():
         if args.dumps:
             c = Combine_Dumps(args.files,args.outfile,base_dir,args.lang)
         elif args.edit_counts:
-            c = Combine_Edit_Counts(base_dir,args.outfile,args.debug,args.num)
+            c = Combine_Edit_Counts(base_dir,args.outfile,args.ratio,args.debug,args.num)
+        elif args.ratio:
+            c = Combine_Edit_Counts(base_dir,args.outfile,args.ratio,args.debug,args.num)
         elif args.stats:
             c = Combine_Stats(base_dir,args.outfile,args.drop1)
         c.combine()
