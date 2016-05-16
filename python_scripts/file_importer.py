@@ -75,11 +75,15 @@ class Page_Edit_Counter(object):
         basic.log('creating %s edit counts' % self.wiki_name)
         f_in_name = os.path.join(self.db_path,config.COMBINED_RAW_EDITS)
         basic.log('loading data from file %s' % f_in_name)
-        try:
+        if self.wiki_name == 'en':
             f_in = pd.read_csv(f_in_name,na_values={'title':''},keep_default_na=False,dtype={'title': object})
-        except MemoryError:
-            print('caught memory error')
-            return
+        else:
+            try:
+                f_in = pd.read_csv(f_in_name,na_values={'title':''},keep_default_na=False,dtype={'title': object})
+            except MemoryError:
+                basic.log('file too large, importing with iterator...')
+                tp = pd.read_csv(f_in_name,na_values={'title':''},keep_default_na=False,dtype={'title': object},iterator=True,chunksize=1000)
+                f_in = pd.concat(tp, ignore_index=True)
         nr = f_in.loc[(f_in['revert'] == False)]
         df = f_in[['page_id','title','namespace']].drop_duplicates(subset='page_id').set_index('page_id',drop=False)
         s = f_in['page_id'].value_counts().to_frame('len')
