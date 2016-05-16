@@ -37,11 +37,11 @@ class Combine_Dumps(object):
                 if i == 0:
                     result = pd.read_csv(f_in,na_values={'title':''},keep_default_na=False)
                     if self.n:
-                        result = result.head(self.n)
+                        result = result.sample(n=self.n)
                 else:
                     df = pd.read_csv(f_in,na_values={'title':''},keep_default_na=False)
                     if self.n:
-                        df = df.head(self.n)
+                        df = df.sample(n=self.n)
                     result = result.append(df)
             result.to_csv(self.f_out)
             basic.log('created %s' % self.f_out)
