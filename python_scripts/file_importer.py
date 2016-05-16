@@ -76,7 +76,8 @@ class Page_Edit_Counter(object):
         f_in_name = os.path.join(self.db_path,config.COMBINED_RAW_EDITS)
         basic.log('loading data from file %s' % f_in_name)
         if self.wiki_name == 'en':
-            f_in = pd.read_csv(f_in_name,na_values={'title':''},keep_default_na=False,dtype={'title': object})
+            tp = pd.read_csv(f_in_name,na_values={'title':''},keep_default_na=False,dtype={'title': object},iterator=True,chunksize=1000)
+            f_in = pd.concat(tp, ignore_index=True)
         else:
             try:
                 f_in = pd.read_csv(f_in_name,na_values={'title':''},keep_default_na=False,dtype={'title': object})
