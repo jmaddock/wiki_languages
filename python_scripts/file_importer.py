@@ -260,7 +260,8 @@ class Robustness_Tester(object):
         basic.log('passed lang test')
 
     def linked_test(self,edit_df_path,page_df_path,linked_df_path):
-        self.page_test(edit_df_path,linked_df_path)
+        if self.lang != 'en':
+            self.page_test(edit_df_path,linked_df_path)
         linked_df = pd.read_csv(linked_df_path,na_values={'title':''},keep_default_na=False,dtype={'title': object})
         linked_ids = linked_df['linked_id'].value_counts().to_frame('values')
         assert len(linked_ids.loc[linked_ids['values'] > 1]) == 0
