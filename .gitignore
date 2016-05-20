@@ -2,7 +2,6 @@ venv/
 scripts/__pycache__/
 *.pyc
 *.RData
-*.DS_Store
 .DS_Store
 data
 db
