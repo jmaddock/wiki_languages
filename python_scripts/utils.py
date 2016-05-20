@@ -22,20 +22,11 @@ def main():
     parser.add_argument('--drop_cols',action='store_true')
     parser.add_argument('-i','--infile')
     parser.add_argument('-o','--outfile')
-    parser.add_argument('-l','--lang')
     args = parser.parse_args()
     if args.clean_en:
         clean_en()
     if args.drop_cols:
-        if args.lang:
-            infile = os.path.join(config.ROOT_PROCESSED_DIR,args.lang,config.COMBINED_EDIT_RATIOS)
-            outfile = os.path.join(config.ROOT_PROCESSED_DIR,args.lang,config.COMBINED_EDIT_RATIOS_NO_TITLES)
-        elif args.infile or args.outfile:
-            infile = args.infile
-            oufile = args.outfile
-        else:
-            basic.log('please provide --lang or --infile and --outfile')
-        drop_cols(infile,outfile)
+        drop_cols(args.infile,args.outfile)
         
 if __name__ == "__main__":
     main()
