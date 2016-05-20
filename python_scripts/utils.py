@@ -13,8 +13,9 @@ def clean_en():
     df.to_csv(fname,na_rep='NaN',encoding='utf-8')
 
 def drop_cols(infile,outfile):
-    df = pd.read_csv(fname,na_values={'title':''},keep_default_na=False,dtype={'title': object})
-    print(df)
+    df = pd.read_csv(infile,na_values={'title':''},keep_default_na=False,dtype={'title': object})
+    columns = ['page_id_1','len_1','num_editors_1','tds_1','lang','page_id_0','len_0','num_editors_0','tds_0','ratio','editor_ratio']
+    df.to_csv(outfile,na_rep='NaN',encoding='utf-8',columns=columns,index=False)
 
 def main():
     parser = argparse.ArgumentParser(description='process wiki data')
