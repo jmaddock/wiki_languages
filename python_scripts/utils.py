@@ -2,6 +2,7 @@ import config
 import os
 import argparse
 import pandas as pd
+import numpy as np
 
 def clean_en():
     fname = os.path.join(config.ROOT_PROCESSED_DIR,'en',config.EDIT_COUNTS)
@@ -22,15 +23,26 @@ def drop1(infile,outfile):
     df = df.loc[(df['num_editors_1'] > 1) & (df['num_editors_0'] > 1)]
     assert len(df.loc[(df['num_editors_1'] < 2) & (df['num_editors_0'] < 2)]) == 0
     df.to_csv(outfile,na_rep='NaN',encoding='utf-8',index=False)
-    
+
+def shuffle_and_split(infile,outfile,n):
+    df = pd.read_csv(infile,na_values={'title':''},keep_default_na=False,dtype={'title': object})
+    df = df.sample(frac=1).reset_index(drop=True)
+    i = 1
+    for chunk in np.array_split(df, int(n)):
+        new_outfile = outfile.replace('.csv','')
+        new_outfile = '{0}{1}.csv'.format(outfile,i)
+        i += 1
+        df.to_csv(outfile,na_rep='NaN',encoding='utf-8',index=False)
 
 def main():
     parser = argparse.ArgumentParser(description='process wiki data')
     parser.add_argument('--clean_en',action='store_true')
     parser.add_argument('--drop_cols',action='store_true')
     parser.add_argument('--drop1',action='store_true')
+    parser.add_argument('--ss',action='store_true')
     parser.add_argument('-i','--infile')
     parser.add_argument('-o','--outfile')
+    parser.add_argument('-n','--num')
     args = parser.parse_args()
     if args.clean_en:
         clean_en()
@@ -38,6 +50,8 @@ def main():
         drop_cols(args.infile,args.outfile)
     if args.drop1:
         drop1(args.infile,args.outfile)
+    if args.ss:
+        shuffle_and_split(args.infile,args.outfile,args.num)
         
 if __name__ == "__main__":
     main()
