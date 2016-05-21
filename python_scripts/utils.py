@@ -28,6 +28,7 @@ def main():
     parser = argparse.ArgumentParser(description='process wiki data')
     parser.add_argument('--clean_en',action='store_true')
     parser.add_argument('--drop_cols',action='store_true')
+    parser.add_argument('--drop1',action='store_true')
     parser.add_argument('-i','--infile')
     parser.add_argument('-o','--outfile')
     args = parser.parse_args()
