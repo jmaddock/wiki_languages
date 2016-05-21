@@ -17,6 +17,13 @@ def drop_cols(infile,outfile):
     columns = ['page_id_1','len_1','num_editors_1','tds_1','lang','page_id_0','len_0','num_editors_0','tds_0','ratio','editor_ratio']
     df.to_csv(outfile,na_rep='NaN',encoding='utf-8',columns=columns,index=False)
 
+def drop1(infile,outfile):
+    df = pd.read_csv(infile,na_values={'title':''},keep_default_na=False,dtype={'title': object})
+    df = df.loc[(df['num_editors_1'] > 1) & (df['num_editors_0'] > 1)]
+    assert len(df.loc[(df['num_editors_1'] < 2) & (df['num_editors_0'] < 2)]) == 0
+    df.to_csv(outfile,na_rep='NaN',encoding='utf-8',index=False)
+    
+
 def main():
     parser = argparse.ArgumentParser(description='process wiki data')
     parser.add_argument('--clean_en',action='store_true')
@@ -28,6 +35,8 @@ def main():
         clean_en()
     if args.drop_cols:
         drop_cols(args.infile,args.outfile)
+    if args.drop1:
+        drop1(args.infile,args.outfile)
         
 if __name__ == "__main__":
     main()
