@@ -24,6 +24,14 @@ def drop1(infile,outfile):
     assert len(df.loc[(df['num_editors_1'] < 2) & (df['num_editors_0'] < 2)]) == 0
     df.to_csv(outfile,na_rep='NaN',encoding='utf-8',index=False)
 
+def drop_n_outliers(infile,outfile,n):
+    df = pd.read_csv(infile,na_values={'title':''},keep_default_na=False,dtype={'title': object})
+    df = df.sort_values(['len_1'],ascending=True)
+    result = df.head(len(df)-int(n))
+    assert len(df) == len(result) + int(n)
+    assert df.iloc[-2].equals(result.iloc[-1])
+    result.to_csv(outfile,na_rep='NaN',encoding='utf-8',index=False)
+
 def shuffle_and_split(infile,outfile,n):
     df = pd.read_csv(infile,na_values={'title':''},keep_default_na=False,dtype={'title': object})
     df = df.sample(frac=1).reset_index(drop=True)
@@ -40,6 +48,7 @@ def main():
     parser.add_argument('--drop_cols',action='store_true')
     parser.add_argument('--drop1',action='store_true')
     parser.add_argument('--ss',action='store_true')
+    parser.add_argument('--drop_outliers',action='store_true')
     parser.add_argument('-i','--infile')
     parser.add_argument('-o','--outfile')
     parser.add_argument('-n','--num')
@@ -52,6 +61,8 @@ def main():
         drop1(args.infile,args.outfile)
     if args.ss:
         shuffle_and_split(args.infile,args.outfile,args.num)
+    if args.drop_outliers:
+        drop_n_outliers(args.infile,args.outfile,args.num)
         
 if __name__ == "__main__":
     main()
