@@ -50,8 +50,8 @@ def job_script(args):
     # get a list of language dirs if lang isn't specified
     langs = [name for name in os.listdir(config.ROOT_PROCESSED_DIR) if (os.path.isdir(os.path.join(config.ROOT_PROCESSED_DIR,name)) and 'combined' not in name)]
     for l in langs:
-        infile = os.path.join(config.ROOT_PROCESSED_DIR,l,config.MERGED_EDIT_RATIOS)
-        outfile = os.path.join(config.ROOT_PROCESSED_DIR,l,config.MERGED_EDIT_RATIOS_DROP1)
+        infile = os.path.join(config.ROOT_PROCESSED_DIR,l,config.EDIT_COUNTS)
+        outfile = os.path.join(config.ROOT_PROCESSED_DIR,l,config.EDIT_COUNTS_DROP1)
         out = 'python3 {0} -i {1} -o {2}'.format(SCRIPT_DIR,infile,outfile)
         if args.drop1:
             out = out + ' --drop1'
