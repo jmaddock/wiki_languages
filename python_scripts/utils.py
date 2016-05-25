@@ -40,9 +40,9 @@ def shuffle_and_split(infile,outfile,n):
     i = 1
     for chunk in np.array_split(df, int(n)):
         new_outfile = outfile.replace('.csv','')
-        new_outfile = '{0}{1}.csv'.format(outfile,i)
+        new_outfile = '{0}{1}.csv'.format(new_outfile,i)
         i += 1
-        df.to_csv(outfile,na_rep='NaN',encoding='utf-8',index=False)
+        chunk.to_csv(new_outfile,na_rep='NaN',encoding='utf-8',index=False)
 
 def job_script(args):
     # create the job script file, passed in command line params with -j flag
