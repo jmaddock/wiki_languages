@@ -4,6 +4,8 @@ import argparse
 import pandas as pd
 import numpy as np
 
+SCRIPT_DIR = os.path.abspath(__file__)
+
 def clean_en():
     fname = os.path.join(config.ROOT_PROCESSED_DIR,'en',config.EDIT_COUNTS)
     df = pd.read_csv(fname,na_values={'title':''},keep_default_na=False,dtype={'title': object})
@@ -42,6 +44,21 @@ def shuffle_and_split(infile,outfile,n):
         i += 1
         df.to_csv(outfile,na_rep='NaN',encoding='utf-8',index=False)
 
+def job_script(args):
+    # create the job script file, passed in command line params with -j flag
+    f = open(args.job_script,'w')
+    # get a list of language dirs if lang isn't specified
+    langs = [name for name in os.listdir(config.ROOT_PROCESSED_DIR) if (os.path.isdir(os.path.join(config.ROOT_PROCESSED_DIR,name)) and 'combined' not in name)]
+    for l in langs:
+        infile = os.path.join(config.ROOT_PROCESSED_DIR,l,config.MERGED_EDIT_RATIOS)
+        outfile = os.path.join(config.ROOT_PROCESSED_DIR,l,config.MERGED_EDIT_RATIOS_DROP1)
+        out = 'python3 {0} -i {1} -o {2}'.format(SCRIPT_DIR,infile,outfile)
+        if args.drop1:
+            out = out + ' --drop1'
+        out = out + '\n'
+        print(out)
+        f.write(out)
+        
 def main():
     parser = argparse.ArgumentParser(description='process wiki data')
     parser.add_argument('--clean_en',action='store_true')
@@ -52,17 +69,21 @@ def main():
     parser.add_argument('-i','--infile')
     parser.add_argument('-o','--outfile')
     parser.add_argument('-n','--num')
+    parser.add_argument('-j','--job_script')
     args = parser.parse_args()
-    if args.clean_en:
-        clean_en()
-    if args.drop_cols:
-        drop_cols(args.infile,args.outfile)
-    if args.drop1:
-        drop1(args.infile,args.outfile)
-    if args.ss:
-        shuffle_and_split(args.infile,args.outfile,args.num)
-    if args.drop_outliers:
-        drop_n_outliers(args.infile,args.outfile,args.num)
-        
+    if args.job_script:
+        job_script(args)
+    else:
+        if args.clean_en:
+            clean_en()
+        if args.drop_cols:
+            drop_cols(args.infile,args.outfile)
+        if args.drop1:
+            drop1(args.infile,args.outfile)
+        if args.ss:
+            shuffle_and_split(args.infile,args.outfile,args.num)
+        if args.drop_outliers:
+            drop_n_outliers(args.infile,args.outfile,args.num)
+
 if __name__ == "__main__":
     main()
