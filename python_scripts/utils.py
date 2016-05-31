@@ -1,10 +1,31 @@
 import config
 import os
 import argparse
+import datetime
 import pandas as pd
 import numpy as np
 
 SCRIPT_DIR = os.path.abspath(__file__)
+
+## read file and return pd dataframe
+## if lang is EN or file it too large read w/ iterator
+def read_wiki_edits_file(infile,lang=None):
+    if lang == 'en':
+        tp = pd.read_csv(infile,na_values={'title':''},keep_default_na=False,dtype={'title': object},iterator=True,chunksize=1000)
+        df = pd.concat(tp, ignore_index=True)
+    else:
+        try:
+            df = pd.read_csv(infile,na_values={'title':''},keep_default_na=False,dtype={'title': object})
+        except MemoryError:
+            basic.log('file too large, importing with iterator...')
+            tp = pd.read_csv(infile,na_values={'title':''},keep_default_na=False,dtype={'title': object},iterator=True,chunksize=1000)
+            df = pd.concat(tp, ignore_index=True)
+    return df
+
+def log(text,log_file=None):
+    print('[%s] %s' % (str(datetime.datetime.now().time())[:-7],text))
+    if log_file:
+        write_log(text)
 
 def clean_en():
     fname = os.path.join(config.ROOT_PROCESSED_DIR,'en',config.EDIT_COUNTS)
