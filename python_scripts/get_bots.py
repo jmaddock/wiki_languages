@@ -1,6 +1,7 @@
 import argparse
 import requests
 import config
+import utils
 import pandas as pd
 
 CMLIMIT = 500
@@ -26,6 +27,7 @@ def get_bot_list_from_web(outfile=None):
             print(r['warnings'])
         if 'query' in r:
             df = df.append(traverse_query(r['query']['categorymembers']))
+            utils.log('processed {0} bot names'.format(len(df)))
         if 'continue' not in r:
             if outfile:
                 df.to_csv(outfile,encoding='utf-8',index=False)
@@ -44,4 +46,4 @@ if __name__ == "__main__":
     parser.add_argument('-o','--outfile')
     args = parser.parse_args()
     if args.outfile:
-        get_bot_list_from_web(outfile)
+        get_bot_list_from_web(args.outfile)
