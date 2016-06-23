@@ -110,6 +110,7 @@ def main():
     parser.add_argument('-n','--num')
     parser.add_argument('--dumps',action='store_true')
     parser.add_argument('--edit_counts',action='store_true')
+    parser.add_argument('--linked',action='store_true')
     parser.add_argument('--ratio',action='store_true') 
     parser.add_argument('--stats',action='store_true')
     parser.add_argument('--drop1',action='store_true')

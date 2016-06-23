@@ -225,6 +225,15 @@ class Page_Edit_Counter(object):
             print(result)
         return result
 
+    def flag_bots(df,bot_list):
+        df['is_bot'] = df['user_text'].isin(bot_list['bot_name'])
+        return df
+
+    def remove_bots(df):
+        df = df.loc[~df['is_bot'] != False]
+        return df
+
+
 class Robustness_Tester(object):
 
     def __init__(self,drop1,lang):
