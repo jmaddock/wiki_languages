@@ -1,7 +1,7 @@
 from mw import xml_dump
 import pandas as pd
 import datetime
-import basic
+import utils
 import subprocess
 import codecs
 import os
@@ -29,20 +29,20 @@ class Single_Dump_Handler(object):
         self.base_dir = f_in.rsplit('/', 1)[0]
 
     def open_dump(self):
-        basic.log('opening file: %s' % self.f_in)
-        basic.write_log('opening file: %s' % self.f_in)
+        utils.log('opening file: %s' % self.f_in)
+        utils.write_log('opening file: %s' % self.f_in)
         self.dump = xml_dump.Iterator.from_file(codecs.open(self.uncompressed,'r','utf-8'))
         return self.dump
 
     def decompress(self):
-        basic.log('decompressing file: %s' % self.f_in)
-        basic.write_log('decompressing file: %s' % self.f_in)
+        utils.log('decompressing file: %s' % self.f_in)
+        utils.write_log('decompressing file: %s' % self.f_in)
         subprocess.call(['7z','x',self.f_in,'-o' + self.base_dir])
 
     def remove_dump(self):
         self.dump = None
-        basic.log('removing file: %s' % self.uncompressed)
-        basic.write_log('removing file: %s' % self.uncompressed)
+        utils.log('removing file: %s' % self.uncompressed)
+        utils.write_log('removing file: %s' % self.uncompressed)
         subprocess.call(['rm',self.uncompressed])
 
     def process_dump(self):
@@ -53,7 +53,7 @@ class Single_Dump_Handler(object):
 
 class CSV_Creator(object):
     def __init__(self,lang):
-        basic.log('creating importer...')
+        utils.log('creating importer...')
         self.lang = lang
         self.dh = None
         self.edit_count = 0
@@ -61,9 +61,9 @@ class CSV_Creator(object):
         self.db_path = config.ROOT_PROCESSED_DIR
 
     def create_db_dir(self):
-        print(self.db_path+self.lang)
+        utils.log(self.db_path+self.lang)
         if not os.path.exists(self.db_path+self.lang):
-            print('creating dir: %s' % self.db_path+self.lang)
+            utils.log('creating dir: %s' % self.db_path+self.lang)
             os.makedirs(self.db_path+self.lang)
 
     def single_import_from_dump(self,f_in=None,f_out=None,n=None,v=False,debug=False):
@@ -80,7 +80,7 @@ class CSV_Creator(object):
                 self.page_count += 1
             if debug and debug > 0 and debug == self.page_count:
                 break
-        basic.log('processed %s pages and %s edits' % (self.page_count,self.edit_count))
+        utils.log('processed %s pages and %s edits' % (self.page_count,self.edit_count))
         if not debug:
             self.dh.remove_dump()
 
@@ -115,17 +115,17 @@ class CSV_Creator(object):
             db_file.write(result)
 
     def document_robustness_checks(self,f_in):
-        basic.log('running document tests')
+        utils.log('running document tests')
         df = pd.read_csv(f_in,na_values={'title':''},keep_default_na=False)
         assert len(df) == self.edit_count
-        basic.log('passed edit count test: iteration count and document line count match')
+        utils.log('passed edit count test: iteration count and document line count match')
         assert len(df['page_id'].unique()) == self.page_count
-        basic.log('passed page count test: iteration count and unique page_id match')
+        utils.log('passed page count test: iteration count and unique page_id match')
         assert len(df.loc[df['namespace'] == 0]['title'].unique()) == len(df.loc[df['namespace'] == 0]['page_id'].unique())
         assert len(df.loc[df['namespace'] == 1]['title'].unique()) == len(df.loc[df['namespace'] == 1]['page_id'].unique())
-        basic.log('passed title uniqueness test: equal number of unique titles and page_ids')
+        utils.log('passed title uniqueness test: equal number of unique titles and page_ids')
         assert len(df.loc[(df['namespace'] >= 0) & (df['namespace'] <= 1)]) == len(df)
-        basic.log('passed namespace test: namespaces equal 0 or 1')
+        utils.log('passed namespace test: namespaces equal 0 or 1')
 
 # IN: path and file name of job script file, optional list of languages (leave empty for all langs)
 def job_script(job_script_file_name,lang_list=None):
@@ -137,7 +137,7 @@ def job_script(job_script_file_name,lang_list=None):
     for l in lang_list:
         base_lang_dir = os.path.join(config.ROOT_RAW_XML_DIR,l)
         file_list = [os.path.join(base_lang_dir,x) for x in os.listdir(base_lang_dir) if '.7z' in x]
-        print(file_list)
+        utils.log(file_list)
         for i,f in enumerate(file_list):
             out = 'python3 {0} -l {6} -i {1} -o {2}{3}/{4}{5}.csv\n'.format(SCRIPT_DIR,f,config.ROOT_PROCESSED_DIR,l,config.RAW_EDITS_BASE,i+1,l)
             job_script.write(out)
@@ -150,28 +150,17 @@ def main():
     parser.add_argument('-l','--lang',nargs='*')
     parser.add_argument('-i','--infile')
     parser.add_argument('-o','--outfile')
-    parser.add_argument('-n','--num')
     parser.add_argument('-j','--job_script')
     parser.add_argument('-d','--debug',type=int)
     args = parser.parse_args()
     if args.job_script:
         job_script(args.job_script,args.lang)
-        return None
-    elif args.num and (args.infile or args.outfile):
-        print('use EITHER --infile and --outfile OR --num flags')
-        return None
-    # DEPRECIATED
-    elif args.num:
-        c = CSV_Creator(args.lang)
-        infile = os.path.join(os.path.dirname(__file__),os.pardir,'data/%s/%swiki-latest-pages-meta-history%s.xml.7z' % (args.lang,args.lang,args.num))
-        outfile = os.path.join(os.path.dirname(__file__),os.pardir,'db/%s/raw_edits_%s.csv' % (args.lang,args.num))
-        c.create_db_dir()
     else:
         c = CSV_Creator(args.lang)
         infile = args.infile
         outfile = args.outfile
-    c.single_import_from_dump(infile,outfile,debug=args.debug)
-    c.document_robustness_checks(outfile)
+        c.single_import_from_dump(infile,outfile,debug=args.debug)
+        c.document_robustness_checks(outfile)
     
 if __name__ == "__main__":
     main()

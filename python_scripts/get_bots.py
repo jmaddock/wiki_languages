@@ -42,7 +42,8 @@ def traverse_query(response):
     return df
         
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='process wiki dumps')
+    description = 'Collect a list of bots from Category:All_Wikipedia_bots and output as a CSV'
+    parser = argparse.ArgumentParser(description=description)
     parser.add_argument('-o','--outfile')
     args = parser.parse_args()
     if args.outfile:
