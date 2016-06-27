@@ -51,7 +51,7 @@ class WD_Downloader(object):
     # TODO: parse langs from top langs csv
     def parse_langs(self,lang_file):
         lang_list = pd.read_csv(lang_file,index_col=False)
-        return list(lang_list['lang'].values
+        return list(lang_list['lang'].values)
 
 def main():
     parser = argparse.ArgumentParser(description='download wiki data')

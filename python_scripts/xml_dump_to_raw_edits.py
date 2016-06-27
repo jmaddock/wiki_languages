@@ -30,19 +30,16 @@ class Single_Dump_Handler(object):
 
     def open_dump(self):
         utils.log('opening file: %s' % self.f_in)
-        utils.write_log('opening file: %s' % self.f_in)
         self.dump = xml_dump.Iterator.from_file(codecs.open(self.uncompressed,'r','utf-8'))
         return self.dump
 
     def decompress(self):
         utils.log('decompressing file: %s' % self.f_in)
-        utils.write_log('decompressing file: %s' % self.f_in)
         subprocess.call(['7z','x',self.f_in,'-o' + self.base_dir])
 
     def remove_dump(self):
         self.dump = None
         utils.log('removing file: %s' % self.uncompressed)
-        utils.write_log('removing file: %s' % self.uncompressed)
         subprocess.call(['rm',self.uncompressed])
 
     def process_dump(self):
