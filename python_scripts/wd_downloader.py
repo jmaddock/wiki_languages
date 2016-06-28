@@ -37,7 +37,7 @@ class WD_Downloader(object):
                         target_file = r'%s/%s/%swiki-%s-pages-meta-%s%s.xml*.7z' % (self.target_dir,lang,date,lang,date,file_type,counter)
                     else:
                         base_url = r'https://dumps.wikimedia.org/%swiki/%s/%swiki-%s-pages-meta-%s%s.xml.7z' % (lang,date,lang,date,file_type,counter)
-                        target_file = r'%s/%s/%swiki-%s-pages-meta-%s%s.xml.7z' % (self.target_dir,lang,date,lang,date,file_type,counter)
+                        target_file = r'%s/%s/%swiki-%s-pages-meta-%s%s.xml.7z' % (self.target_dir,lang,lang,date,file_type,counter)
                 utils.log('url: %s' % base_url)
                 utils.log('target file: %s' % target_file)
                 try:
