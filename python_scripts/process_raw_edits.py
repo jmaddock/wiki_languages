@@ -56,6 +56,7 @@ class Page_Edit_Counter(object):
         result_path = os.path.join(self.db_path,config.LINKED_EDIT_COUNTS)
         columns = ['page_id','title','namespace','len','no_revert_len','num_editors','td','tds','lang','linked_id']
         result = self.drop_dups(result)
+        result = result[columns]
         result.to_csv(result_path,na_rep='NaN',columns=columns,encoding='utf-8')
         return result
 
@@ -187,8 +188,8 @@ class Page_Edit_Counter(object):
             utils.log('loading data from file %s' % f_in_name)
             df = pd.read_csv(f_in_name,na_values={'title':''},keep_default_na=False,dtype={'title': object})
         df.page_id = df.page_id.astype(float)
-        df = df.loc[~df['linked_id'].isnull()]
         df.linked_id = df.linked_id.astype(float)
+        df = df.loc[df['linked_id'].notnull()]
         df = self.drop_dups(df)
         utils.log('dropped %s duplicates' % len(df.set_index('page_id',drop=False).index.get_duplicates()))
         df = df.drop_duplicates(subset='page_id',keep=False)
@@ -213,8 +214,11 @@ class Page_Edit_Counter(object):
         merged = ratio.merge(n1,left_index=True,right_index=True,how='outer',suffixes=['_0','_1']).dropna()
         result_path =  os.path.join(self.db_path,config.MERGED_EDIT_RATIOS)
         merged = merged.rename(columns = {'title_1':'title',
-                                          'lang_1':'lang',})
+                                          'lang_1':'lang',
+                                          'page_id':'page_id_1',
+                                          'linked_id_1':'page_id_0'})
         columns = ['page_id_1','title','len_1','no_revert_len_1','num_editors_1','td_1','tds_1','lang','page_id_0','len_0','no_revert_len_0','num_editors_0','td_0','tds_0','ratio','editor_ratio']
+        merged = merged[columns]
         merged.to_csv(result_path,na_rep='NaN',columns=columns,encoding='utf-8')
         return merged
 
@@ -279,6 +283,7 @@ class Robustness_Tester(Page_Edit_Counter):
         assert len(merged_df['page_id_1'].unique()) == len(merged_df['page_id_1'])
         assert len(merged_df['page_id_0'].unique()) == len(merged_df['page_id_0'])
         utils.log('passed page_id uniqueness test')
+        #print(merged_df)
         assert len(merged_df.loc[merged_df['page_id_1'].isin(merged_df['page_id_0'])]) == 0
         utils.log('passed page_id test: articles and talk have different ids')
         assert len(merged_df) == len(linked_df.loc[linked_df['namespace'] == 1])

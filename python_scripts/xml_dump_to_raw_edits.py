@@ -71,6 +71,7 @@ class CSV_Creator(object):
             self.dh.open_dump()
         else:
             self.dh.process_dump()
+            
         for page in self.dh.dump:
             if page.namespace == 1 or page.namespace == 0:
                 self.create_csv_document(page,db_file)
