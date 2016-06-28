@@ -286,7 +286,7 @@ class Robustness_Tester(Page_Edit_Counter):
         #print(merged_df)
         assert len(merged_df.loc[merged_df['page_id_1'].isin(merged_df['page_id_0'])]) == 0
         utils.log('passed page_id test: articles and talk have different ids')
-        assert len(merged_df) == len(linked_sd.loc[(linked_df['linked_id'].isnull()) & (linked_df['namespace'] == 1)])
+        assert len(merged_df) == len(linked_df.loc[(linked_df['linked_id'].notnull()) & (linked_df['namespace'] == 1)])
         utils.log('passed length test: correct number of talk articles')
         assert merged_df['len_1'].sum() == linked_df.loc[linked_df['namespace'] == 1]['len'].sum()
         assert merged_df['len_0'].sum() == linked_df.loc[linked_df['namespace'] == 0]['len'].sum()
