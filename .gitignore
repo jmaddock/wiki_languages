@@ -9,4 +9,6 @@ coding
 viz_results
 results
 python_scripts/config.py
-multilingual_wiki_coding_utilities/
+multilingual_wiki_coding_utilities/*.json
+multilingual_wiki_coding_utilities/.credentials
+
