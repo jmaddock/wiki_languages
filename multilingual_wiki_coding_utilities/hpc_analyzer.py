@@ -1,4 +1,4 @@
-import basic
+import utils
 import argparse
 import os
 import pandas as pd
@@ -15,7 +15,7 @@ class Analyzer(object):
         self.drop1 = drop1
     
     def edit_statistics(self,statistics,v=False):
-        f_out = basic.create_dir('results/basic_stats')
+        f_out = utils.create_dir('results/basic_stats')
         if self.drop1:
             f = open('%s/edits_drop1_%s.csv' % (f_out,self.lang),'w')
         else:
@@ -38,7 +38,7 @@ class Analyzer(object):
             result[self.lang][n] = defaultdict(dict)
             for r in self.revert:
                 result[self.lang][n][r] = defaultdict(dict)
-                basic.log('%s %s %s' % (self.lang,n,r))
+                utils.log('%s %s %s' % (self.lang,n,r))
                 for s in statistics:
                     if s == 'total':
                         if n == 'at':
@@ -82,15 +82,15 @@ class Analyzer(object):
 
     
     def edit_histogram(self,plot=True,v=False):
-        basic.log('creating edit histogram %s' % self.lang)
-        f_out = basic.create_dir('results/histograms')
+        utils.log('creating edit histogram %s' % self.lang)
+        f_out = utils.create_dir('results/histograms')
         df = pd.read_csv(self.db_path)
         df = self.drop_dups(df)
         if self.drop1:
             df = df.loc[(df['len'] > 1)]
         for n in self.namespace:
             for r in self.revert:
-                basic.log('%s %s %s' % (self.lang,n,r))
+                utils.log('%s %s %s' % (self.lang,n,r))
                 if n == 'at':
                     result = df[r].value_counts()
                 else:
@@ -100,8 +100,8 @@ class Analyzer(object):
                 result.to_csv('%s/%s_%s_%s.csv' % (f_out,self.lang,n,r),encoding='utf-8',index_label='edits')
 
     def edit_quantiles(self,q=.01,quantile_range=False,v=False,write=True):
-        basic.log('creating edit quantiles %s' % self.lang)
-        f_out = basic.create_dir('results/quantiles')
+        utils.log('creating edit quantiles %s' % self.lang)
+        f_out = utils.create_dir('results/quantiles')
         df = pd.read_csv(self.db_path)
         df = self.drop_dups(df)
         df.page_id = df.page_id.astype(int)
@@ -112,7 +112,7 @@ class Analyzer(object):
         for n in self.namespace:
             results[n] = defaultdict(dict)
             for r in self.revert:
-                basic.log('%s %s %s' % (self.lang,n,r))
+                utils.log('%s %s %s' % (self.lang,n,r))
                 if n == 'at':
                     result = df[r].quantile(q=q)
                     mean = df[r].mean()
@@ -146,37 +146,37 @@ class Analyzer(object):
         result.to_csv('%s/combined.csv' % (data_dir),encoding='utf-8')
 
     def edit_ratio_histogram(self):
-        basic.log('creating edit histogram %s' % self.lang)
-        f_out = basic.create_dir('results/ratio_histograms')
+        utils.log('creating edit histogram %s' % self.lang)
+        f_out = utils.create_dir('results/ratio_histograms')
         df = pd.read_csv(self.db_path)
         df.page_id = df.page_id.astype(float)
         df = df.loc[df['linked_id'] != None]
         df.linked_id = df.linked_id.astype(float)
         df = self.drop_dups(df)
-        basic.log('dropped %s duplicates' % len(df.set_index('page_id',drop=False).index.get_duplicates()))
+        utils.log('dropped %s duplicates' % len(df.set_index('page_id',drop=False).index.get_duplicates()))
         df = df.drop_duplicates(subset='page_id',keep=False)
         if self.drop1:
             df = df.loc[(df['len'] > 1)]
         for r in self.revert:
-            basic.log('%s %s' % (self.lang,r))
-            basic.log('%s pages' % len(df))
+            utils.log('%s %s' % (self.lang,r))
+            utils.log('%s pages' % len(df))
             n0 = df.loc[(df['namespace'] == 0)].set_index('page_id',drop=False)
             n1 = df.loc[(df['namespace'] == 1)].set_index('linked_id',drop=False)
-            basic.log('%s articles' % len(n0))
-            basic.log('%s talk' % len(n1))
+            utils.log('%s articles' % len(n0))
+            utils.log('%s talk' % len(n1))
             ratio = n0[r].divide(n1[r],axis='index',fill_value=-1).to_frame()
             ratio.columns = ['ratio']
             ratio.ratio = ratio.ratio.astype(int)
             ratio = n0.join(ratio).set_index('page_id')
             ratio = ratio.loc[ratio['ratio'] >= 0]
-            basic.log('%s ratios' % len(ratio))
+            utils.log('%s ratios' % len(ratio))
             result = ratio['ratio'].value_counts().to_frame()
             result = result.sort_index(ascending=True)
             result.columns = ['pages']
             result.to_csv('%s/%s_%s.csv' % (f_out,self.lang,r),encoding='utf-8',index_label='edit_ratio')
 
     def drop_dups(self,df):
-        basic.log('dropped %s duplicates' % len(df.set_index('page_id',drop=False).index.get_duplicates()))
+        utils.log('dropped %s duplicates' % len(df.set_index('page_id',drop=False).index.get_duplicates()))
         return df.drop_duplicates(subset='page_id',keep=False)
             
 
