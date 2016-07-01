@@ -101,7 +101,7 @@ class Analyzer(object):
 
     def edit_quantiles(self,q=.01,quantile_range=False,v=False,write=True):
         utils.log('creating edit quantiles %s' % self.lang)
-        f_out = utils.create_dir('results/quantiles')
+        #f_out = utils.create_dir('results/quantiles')
         df = pd.read_csv(self.db_path)
         df = self.drop_dups(df)
         df.page_id = df.page_id.astype(int)
