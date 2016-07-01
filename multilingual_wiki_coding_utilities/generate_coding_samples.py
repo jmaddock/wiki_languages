@@ -1,6 +1,6 @@
 from hpc_analyzer import Analyzer
 import os
-import basic
+import utils
 import argparse
 import pandas as pd
 
@@ -70,7 +70,7 @@ class Qual_Sampler(object):
                 except ValueError:
                     sample = self.edit_counts.loc[(self.edit_counts['namespace'] == 1) & (self.edit_counts['len'] == y)]
                     quantile_label = self.get_quantiles(values=y).index.values[0]
-                    basic.log('not enough data in quantile %s, len %s for lang: %s' % (quantile_label,y,self.edit_counts.iloc[0]['lang']))
+                    utils.log('not enough data in quantile %s, len %s for lang: %s' % (quantile_label,y,self.edit_counts.iloc[0]['lang']))
                 sample = sample.assign(quantile=quantile_label)
                 x = x - len(sample)
                 y += 1
@@ -86,7 +86,7 @@ class Qual_Sampler(object):
 
     def write_to_csv(self,df,output_dir):
         columns = ['page_id','lang','len','quantile','title','url','templating','index_box','heading','posts','unique_authors','depth','archive','exchanges']
-        basic.create_dir(coding)
+        #utils.create_dir(coding)
         df.to_csv(os.path.join(output_dir,'{0}_codes.csv'.format(self.lang)),encoding='utf-8',columns=columns)
     
 def main():
