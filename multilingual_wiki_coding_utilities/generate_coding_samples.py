@@ -94,7 +94,7 @@ def main():
     parser.add_argument('-f','--file_name')
     parser.add_argument('-i','--input_dir')
     parser.add_argument('-o','--output_dir')
-    parser.add_argument('-n','--num_pages')
+    parser.add_argument('-n','--num_pages',type=int)
     parser.add_argument('-q','--quantile_list',nargs='*')
     args = parser.parse_args()    
     files = get_files(args.input_dir,args.file_name)#,v=True)
