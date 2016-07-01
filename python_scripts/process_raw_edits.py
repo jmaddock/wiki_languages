@@ -38,8 +38,6 @@ class Page_Edit_Counter(object):
             f_in_name = os.path.join(self.db_path,config.EDIT_COUNTS)
             utils.log('loading data from file %s' % f_in_name)
             f_in = pd.read_csv(f_in_name,na_values={'title':''},keep_default_na=False,dtype={'title': object})
-        if self.drop1:
-            f_in = f_in.loc[(f_in['len'] > 1)]
         f_in.title = f_in.title.astype(str)
         n0 = f_in.loc[(f_in['namespace'] == 0)].set_index('title',drop=False)
         n1 = f_in.loc[(f_in['namespace'] == 1)].set_index('title',drop=False)
@@ -67,6 +65,23 @@ class Page_Edit_Counter(object):
         percent = num_dups/len(df)
         utils.log('dropped %s (%.2f%%) duplicates' % (num_dups,percent))
         return df.drop_duplicates(subset='page_id',keep=False)
+
+    def _drop1_editors(self,df):
+        df = df.loc[(df['num_editors'] > 1)]
+        assert len(df.loc[(df['num_editors'] < 2)]) == 0
+        utils.log('passed drop1 editor test: all pages have more than 1 editor')
+        return df
+
+    def _drop1_edits(self,df):
+        df = df.loc[(df['len'] > 1)]
+        assert len(df.loc[(df['len'] < 2)]) == 0
+        utils.log('passed drop1 edit test: all pages have more than 1 edit')
+        return df
+
+    def _drop1(self,df):
+        df = self._drop1_edits(df)
+        df = self._drop1_editors(df)
+        return df
 
     def flag_bots(self,df):
         bot_list = pd.read_csv(config.BOT_LIST,dtype={'bot_name':object},na_values={'title':''},keep_default_na=False,)
@@ -120,7 +135,7 @@ class Page_Edit_Counter(object):
         result = result.merge(age,on='page_id').merge(editors,on='page_id')
         result['lang'] = self.wiki_name
         if self.drop1:
-            result = result.loc[(result['len'] > 1)]
+            result = self._drop1(result)
         result.to_csv(result_path,na_rep='NaN',columns=columns,encoding='utf-8')
         if v:
             print(result)
@@ -193,8 +208,6 @@ class Page_Edit_Counter(object):
         df = self.drop_dups(df)
         utils.log('dropped %s duplicates' % len(df.set_index('page_id',drop=False).index.get_duplicates()))
         df = df.drop_duplicates(subset='page_id',keep=False)
-        if self.drop1:
-            df = df.loc[(df['len'] > 1)]
         utils.log('%s' % (self.wiki_name))
         utils.log('%s pages' % len(df))
         n0 = df.loc[(df['namespace'] == 0) & (~df['linked_id'].isnull())].set_index('page_id',drop=False)
@@ -247,6 +260,9 @@ class Robustness_Tester(Page_Edit_Counter):
             edit_counts = edit_df['page_id'].value_counts().to_frame('values')
             edit_counts = edit_counts.loc[edit_counts['values'] > 1]
             edit_df = edit_df.loc[edit_df['page_id'].isin(edit_counts.index.values)]
+            editor_counts = edit_df.groupby('page_id').user_text.nunique().to_frame('values')
+            editor_counts = editor_counts.loc[editor_counts['values'] > 1]
+            edit_df = edit_df.loc[edit_df['page_id'].isin(editor_counts.index.values)]
         assert len(edit_df) > 0
         assert len(page_df) > 0
         assert len(page_df['page_id'].unique()) == len(page_df['page_id'])
@@ -301,7 +317,7 @@ def job_script(args):
         out = 'python3 %s -l %s' % (SCRIPT_DIR,l)
         if args.drop1:
             out = out + ' --drop1'
-        if args.drop1:
+        if args.no_bots:
             out = out + ' --no_bots'
         if args.counts:
             out = out + ' --counts'
@@ -342,6 +358,8 @@ def main():
         if args.counts:
             df = c.rev_size()
             t.page_test(edit_df_path,page_df_path)
+            if args.lang == 'en':
+                utils.clean_en()
             df = c.link_documents(df)
             t.linked_test(edit_df_path,page_df_path,linked_df_path)
         if args.append:
