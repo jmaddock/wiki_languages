@@ -1,4 +1,5 @@
 import datetime
+import os
 
 def log(text,log_file=None):
     print('[%s] %s' % (str(datetime.datetime.now().time())[:-7],text))
