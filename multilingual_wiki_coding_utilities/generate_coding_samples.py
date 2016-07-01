@@ -106,7 +106,7 @@ def main():
             quantile_list = args.quantile_list
         quantiles = qs.get_quantiles(quantiles=quantile_list)
         p = qs.get_pages(quantiles,args.num_pages)
-        qs.write_to_csv(p)
+        qs.write_to_csv(p,args.output_dir)
     
 if __name__ == "__main__":
     main()
