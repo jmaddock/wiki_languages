@@ -224,7 +224,7 @@ class Page_Edit_Counter(object):
         ratio = ratio.loc[(ratio['ratio'] >= 0) & (ratio['editor_ratio'] >= 0)]
         utils.log('%s ratios' % len(ratio))
         ratio = ratio.rename(columns = {'page_id.1':'page_id'})
-        merged = ratio.merge(n1,left_index=True,right_index=True,how='outer',suffixes=['_0','_1']).dropna()
+        merged = ratio.merge(n1,left_index=True,right_index=True,how='outer',suffixes=['_0','_1'])
         result_path =  os.path.join(self.db_path,config.MERGED_EDIT_RATIOS)
         merged = merged.rename(columns = {'title_1':'title',
                                           'lang_1':'lang',
