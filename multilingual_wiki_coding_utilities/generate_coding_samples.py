@@ -4,9 +4,7 @@ import basic
 import argparse
 import pandas as pd
 
-ROOT_DIR = '../db/'
-EDIT_COUNT_FILE_NAME = 'edit_counts.csv'
-OUTPUT_DIR = '../coding/'
+SEED = 100
 
 def get_files(base_dir,target_name,v=False):
     files = []
@@ -67,7 +65,7 @@ class Qual_Sampler(object):
             x = n
             while x > 0:
                 try:
-                    sample = self.edit_counts.loc[(self.edit_counts['namespace'] == 1) & (self.edit_counts['len'] == y)].sample(n=x)
+                    sample = self.edit_counts.loc[(self.edit_counts['namespace'] == 1) & (self.edit_counts['len'] == y)].sample(n=x,random_state=SEED)
                     quantile_label = self.get_quantiles(values=y).index.values[0]
                 except ValueError:
                     sample = self.edit_counts.loc[(self.edit_counts['namespace'] == 1) & (self.edit_counts['len'] == y)]
@@ -98,7 +96,7 @@ def main():
     parser.add_argument('-o','--output_dir')
     parser.add_argument('-n','--num_pages')
     parser.add_argument('-q','--quantile_list',nargs='*')
-    args = parser.parse_args()
+    args = parser.parse_args()    
     files = get_files(args.input_dir,args.file_name)#,v=True)
     for f in files:
         qs = Qual_Sampler(f['lang'],f['path'])
