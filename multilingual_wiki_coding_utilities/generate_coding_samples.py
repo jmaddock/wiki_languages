@@ -17,11 +17,12 @@ def get_files(base_dir,target_name,v=False):
     return files
 
 class Qual_Sampler(object):
-    def __init__(self,lang,edit_count_path):
+    def __init__(self,lang,edit_count_path,quantile_list):
         self.lang = lang
         self.ns = ['t']
         self.r = ['len']
         self.drop1 = True
+        self.quantile_list=quantile_list
         self.edit_counts = self.read_edit_counts(edit_count_path)
         self.quantiles = self.find_all_quantiles()
 
@@ -87,7 +88,7 @@ class Qual_Sampler(object):
     def write_to_csv(self,df,output_dir):
         columns = ['page_id','lang','len','quantile','title','url','templating','index_box','heading','posts','unique_authors','depth','archive','exchanges']
         #utils.create_dir(coding)
-        df.to_csv(os.path.join(output_dir,'{0}_codes.csv'.format(self.lang)),encoding='utf-8',columns=columns)
+        df.to_csv(os.path.join(output_dir,'{0}_{1}_percentile_codes.csv'.format(self.lang,self.quantile_list)),encoding='utf-8',columns=columns)
     
 def main():
     parser = argparse.ArgumentParser(description='process wiki dumps')
@@ -99,11 +100,11 @@ def main():
     args = parser.parse_args()    
     files = get_files(args.input_dir,args.file_name)#,v=True)
     for f in files:
-        qs = Qual_Sampler(f['lang'],f['path'])
         if not args.quantile_list:
             quantile_list = [50,90]
         else:
             quantile_list = args.quantile_list
+        qs = Qual_Sampler(f['lang'],f['path'],quantile_list)
         quantiles = qs.get_quantiles(quantiles=quantile_list)
         p = qs.get_pages(quantiles,args.num_pages)
         qs.write_to_csv(p,args.output_dir)
