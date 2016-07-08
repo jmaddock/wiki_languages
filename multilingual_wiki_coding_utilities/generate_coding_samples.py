@@ -102,9 +102,9 @@ def main():
     for f in files:
         if not args.quantile_list:
             quantile_list = [50,90]
-            quantile_list = [int(x) for x in quantile_list]
         else:
             quantile_list = args.quantile_list
+            quantile_list = [int(x) for x in quantile_list]
         qs = Qual_Sampler(f['lang'],f['path'],quantile_list)
         quantiles = qs.get_quantiles(quantiles=quantile_list)
         p = qs.get_pages(quantiles,args.num_pages)
