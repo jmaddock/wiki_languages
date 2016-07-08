@@ -97,11 +97,12 @@ def main():
     parser.add_argument('-o','--output_dir')
     parser.add_argument('-n','--num_pages',type=int)
     parser.add_argument('-q','--quantile_list',nargs='*')
-    args = parser.parse_args()    
+    args = parser.parse_args()
     files = get_files(args.input_dir,args.file_name)#,v=True)
     for f in files:
         if not args.quantile_list:
             quantile_list = [50,90]
+            quantile_list = [int(x) for x in quantile_list]
         else:
             quantile_list = args.quantile_list
         qs = Qual_Sampler(f['lang'],f['path'],quantile_list)
