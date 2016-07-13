@@ -125,8 +125,8 @@ class Qual_Sampler(object):
                     print(sample)
                 sample_list = sample_list.append(sample)
                 # limit number of tries to 100 percentile or 100* the given value
-                if (self.threshold_by == 'quantiles' and quantile_label >= 1) or (self.threshold_by == 'values' and quantile_lable == q['values']):
-                    utils.log('not enough pages in {0}, aborting...'.self.lang)
+                if (self.threshold_by == 'quantiles' and quantile_label >= 1) or (self.threshold_by == 'values' and quantile_label == (100*q['values'])):
+                    utils.log('not enough pages in {0}, aborting...'.format(self.lang))
                     break
         sample_list = sample_list.assign(url = lambda x : (r'https://'+x.lang+r'.wikipedia.org/wiki/'+x.title))
         if v:
