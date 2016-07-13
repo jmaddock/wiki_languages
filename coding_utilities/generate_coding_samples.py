@@ -99,6 +99,7 @@ class Qual_Sampler(object):
 
     ## takes a dataframe of quantiles and dataframe of edit_counts
     def get_pages(self,v=False):
+        utils.log('sampling from {0}'.format(self.lang))
         sample_list = pd.DataFrame()
         for i, q in self.absolute_threshold_values.iterrows():
             y = q['values']
@@ -124,7 +125,7 @@ class Qual_Sampler(object):
                     print(sample)
                 sample_list = sample_list.append(sample)
                 # limit number of tries to 100 percentile or 100* the given value
-                if (self.threshold_by == 'quantiles' and quantile_label >= 1) or (threshold_by == 'values' and quantile_lable == q['values']):
+                if (self.threshold_by == 'quantiles' and quantile_label >= 1) or (self.threshold_by == 'values' and quantile_lable == q['values']):
                     utils.log('not enough pages in {0}, aborting...'.self.lang)
                     break
         sample_list = sample_list.assign(url = lambda x : (r'https://'+x.lang+r'.wikipedia.org/wiki/'+x.title))
