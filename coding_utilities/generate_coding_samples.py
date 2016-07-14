@@ -153,6 +153,7 @@ def main():
                         help='output directory for coding sheets')
     parser.add_argument('-n','--num_pages',
                         type=int,
+                        required=True,
                         help='number of pages to sample from each threshold point')
     parser.add_argument('-v','--threshold_values',
                         nargs='+',

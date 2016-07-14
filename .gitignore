@@ -8,7 +8,7 @@ db
 coding
 viz_results
 results
-python_scripts/config.py
+dump_processing_pipeline/config.py
 multilingual_wiki_coding_utilities/*.json
 multilingual_wiki_coding_utilities/.credentials
 

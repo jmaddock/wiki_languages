@@ -1,4 +1,4 @@
-import urllib
+from urllib import request
 import os
 import argparse
 import utils
@@ -22,26 +22,29 @@ class WD_Downloader(object):
                 os.makedirs(new_dir)
 
     def download(self,file_type,date):
-        wd = urllib.URLopener()
         for lang in self.langs:
             utils.log('downloading %s' % lang)
             counter = 0
             exit_loop = False
+            if file_type == 'current':
+                file_extension = 'bz2'
+            else:
+                file_extension = '7z'
             while not exit_loop:
                 if counter == 0:
-                    base_url = r'https://dumps.wikimedia.org/%swiki/%s/%swiki-%s-pages-meta-%s.xml.7z' % (lang,date,lang,date,file_type)
-                    target_file = r'%s/%s/%swiki-%s-pages-meta-%s%s.xml.7z' % (self.target_dir,lang,lang,date,file_type,(counter+1))
+                    base_url = r'https://dumps.wikimedia.org/%swiki/%s/%swiki-%s-pages-meta-%s.xml.%s' % (lang,date,lang,date,file_type,file_extension)
+                    target_file = r'%s/%s/%swiki-%s-pages-meta-%s%s.xml.%s' % (self.target_dir,lang,lang,date,file_type,(counter+1),file_extension)
                 else:
                     if lang == 'en':
-                        base_url = r'https://dumps.wikimedia.org/%swiki/%s/%swiki-%s-pages-meta-%s%s.xml*.7z' % (lang,date,lang,date,file_type,counter)
-                        target_file = r'%s/%s/%swiki-%s-pages-meta-%s%s.xml*.7z' % (self.target_dir,lang,date,lang,date,file_type,counter)
+                        base_url = r'https://dumps.wikimedia.org/%swiki/%s/%swiki-%s-pages-meta-%s%s.xml*.%s' % (lang,date,lang,date,file_type,counter,file_extension)
+                        target_file = r'%s/%s/%swiki-%s-pages-meta-%s%s.xml*.%s' % (self.target_dir,lang,date,lang,date,file_type,counter,file_extension)
                     else:
-                        base_url = r'https://dumps.wikimedia.org/%swiki/%s/%swiki-%s-pages-meta-%s%s.xml.7z' % (lang,date,lang,date,file_type,counter)
-                        target_file = r'%s/%s/%swiki-%s-pages-meta-%s%s.xml.7z' % (self.target_dir,lang,lang,date,file_type,counter)
+                        base_url = r'https://dumps.wikimedia.org/%swiki/%s/%swiki-%s-pages-meta-%s%s.xml.%s' % (lang,date,lang,date,file_type,counter,file_extension)
+                        target_file = r'%s/%s/%swiki-%s-pages-meta-%s%s.xml.%s' % (self.target_dir,lang,lang,date,file_type,counter,file_extension)
                 utils.log('url: %s' % base_url)
                 utils.log('target file: %s' % target_file)
                 try:
-                    wd.retrieve(base_url,target_file)
+                    request.urlretrieve(base_url,target_file)
 
                 except IOError:
                     if counter > 0:
@@ -55,22 +58,32 @@ class WD_Downloader(object):
 
 def main():
     parser = argparse.ArgumentParser(description='download wiki data')
-    #parser.add_argument('-b','--target_dir')
-    parser.add_argument('-d','--date')
-    parser.add_argument('-l','--langs',nargs='+')
-    parser.add_argument('--history',action='store_true')
-    parser.add_argument('--current',action='store_true')
+    parser.add_argument('-o','--target_dir',
+                        help='output base directory (not including language, these are auto generated)')
+    parser.add_argument('-d','--date',
+                        default='latest',
+                        type=str,
+                        help='a date string of the format "yyyymmdd" or "latest" for most recent')
+    parser.add_argument('-l','--langs',
+                        nargs='+',
+                        help='a list of two letter wiki language codes to download')
+    parser.add_argument('--history',
+                        action='store_true',
+                        help='download the complete revision for each history')
+    parser.add_argument('--current',
+                        action='store_true',
+                        help='only download the current revision of each page')
     args = parser.parse_args()
-    d = WD_Downloader(config.ROOT_RAW_XML_DIR,args.langs)
-    d.make_dirs()
-    if args.date:
-        date = str(args.date)
+    if args.target_dir:
+        base_dir = args.target_dir
     else:
-        date = 'latest'
+        base_dir = config.ROOT_RAW_XML_DIR
+    d = WD_Downloader(base_dir,args.langs)
+    d.make_dirs()
     if args.history:
-        d.download('history',date)
+        d.download('history',args.date)
     if args.current:
-        d.download('current',date)
+        d.download('current',args.date)
 
 if __name__ == "__main__":
     main()
