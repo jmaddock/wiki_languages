@@ -3,12 +3,9 @@ scripts/__pycache__/
 *.pyc
 *.RData
 .DS_Store
-data
-db
-coding
-viz_results
-results
 dump_processing_pipeline/config.py
 multilingual_wiki_coding_utilities/*.json
 multilingual_wiki_coding_utilities/.credentials
+stata_files/*.tsv
+stata_files/*.log
 

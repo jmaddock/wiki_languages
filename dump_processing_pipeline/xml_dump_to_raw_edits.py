@@ -1,10 +1,12 @@
+import os
+import sys
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from mw import xml_dump
 import pandas as pd
 import datetime
 import utils
 import subprocess
 import codecs
-import os
 import argparse
 import config
 

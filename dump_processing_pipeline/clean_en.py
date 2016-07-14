@@ -1,5 +1,7 @@
-import config
 import os
+import sys
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import config
 import pandas as pd
 
 fname = os.path.join(config.ROOT_PROCESSED_DIR,'en',config.EDIT_COUNTS)

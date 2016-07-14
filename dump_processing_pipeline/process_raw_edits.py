@@ -1,7 +1,9 @@
+import os
+import sys
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from mw import xml_dump,Timestamp
 from collections import Counter
 import pandas as pd
-import os
 import datetime
 import utils
 import json
