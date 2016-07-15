@@ -9,6 +9,7 @@ import utils
 import json
 import argparse
 import config
+import combine
 
 ## --ratio and --merge FLAGS MUST BE USED WITH LOADED .CSV FILE
 
@@ -325,6 +326,8 @@ def job_script(args):
             out = out + ' --counts'
         if args.append:
             out = out + ' --append'
+        if args.combine:
+            out = out + ' --combine'
         out = out + '\n'
         print(out)
         f.write(out)
@@ -333,15 +336,23 @@ def job_script(args):
 
 def main():
     parser = argparse.ArgumentParser(description='process wiki data')
-    parser.add_argument('-l','--lang')
-    parser.add_argument('-b','--base_dir')
-    parser.add_argument('-j','--job_script')
-    parser.add_argument('--drop1',action='store_true')
-    parser.add_argument('--no_bots',action='store_true')
-    parser.add_argument('--append',action='store_true')
-    parser.add_argument('--counts',action='store_true')
-    parser.add_argument('-i','--infile')
-    parser.add_argument('-o','--outfile')
+    parser.add_argument('-l','--lang',
+                        required=True,
+                        help='the two letter wiki language codes to to process')
+    parser.add_argument('-b','--base_dir',
+                        help='base dir containing language directories if not using config file')
+    parser.add_argument('-j','--job_script',
+                        help='generate a job script to the specified output path/file')
+    parser.add_argument('--drop1',action='store_true',
+                        help='drop all articles with single edits and single editors')
+    parser.add_argument('--no_bots',action='store_true',
+                        help='drop all bot edits from counts')
+    parser.add_argument('--append',action='store_true',
+                        help='create joined talk/article .csv files for modeling (1 row per talk/article pair)')
+    parser.add_argument('--counts',action='store_true',
+                        help='create a csv of edit counts per article from a csv of raw edits')
+    parser.add_argument('--combine',action='store_true',
+                        help='combine raw edit files before processing')
     args = parser.parse_args()
     if args.job_script:
         job_script(args)
@@ -357,6 +368,10 @@ def main():
         linked_df_path = os.path.join(config.ROOT_PROCESSED_DIR,args.lang,config.LINKED_EDIT_COUNTS)
         merged_df_path = os.path.join(config.ROOT_PROCESSED_DIR,args.lang,config.MERGED_EDIT_COUNTS)
         ratio_df_path = os.path.join(config.ROOT_PROCESSED_DIR,args.lang,config.MERGED_EDIT_RATIOS)
+        if args.combine:
+            utils.log('combining dumps')
+            cd = combine.Combine_Dumps(base_dir=config.ROOT_PROCESSED_DIR,lang=args.lang)
+            cd.combine()
         if args.counts:
             df = c.rev_size()
             t.page_test(edit_df_path,page_df_path)

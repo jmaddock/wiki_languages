@@ -2,20 +2,24 @@ import os
 import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import argparse
-import basic
 import config
 import pandas as pd
+import utils
 
 SCRPT_DIR = os.path.abspath(__file__)
 
 class Combine_Dumps(object):
-    def __init__(self,files,f_out,base_dir,lang,n=None):
-        self.base_dir = base_dir
+    def __init__(self,base_dir=None,files=None,f_out=None,lang=None,n=None):
+        if base_dir:
+            self.base_dir = base_dir
+        else:
+            self.base_dir = config.ROOT_PROCESSED_DIR
         if n:
             self.n = int(n)
         else:
             self.n = n
         if lang and not files:
+            self.base_dir = os.path.join(self.base_dir,lang)
             self.files = self.get_files(self.base_dir)
         else:
             self.files = files
@@ -27,7 +31,7 @@ class Combine_Dumps(object):
     def get_files(self,db_dir):
         files = []
         for f in os.listdir(db_dir):
-            if f[:len(config.RAW_EDITS_BASE)] == config.RAW_EDITS_BASE:
+            if f[:len(config.RAW_EDITS_BASE)] == config.RAW_EDITS_BASE and f[-4:] == '.csv':
                 files.append(os.path.join(self.base_dir,f))
         return files
         
@@ -35,7 +39,7 @@ class Combine_Dumps(object):
         if self.files:
             for i,f in enumerate(self.files):
                 f_in = f
-                basic.log('added %s' % f_in)
+                utils.log('added %s' % f_in)
                 if i == 0:
                     result = pd.read_csv(f_in,na_values={'title':''},keep_default_na=False)
                     if self.n:
@@ -46,7 +50,7 @@ class Combine_Dumps(object):
                         df = df.sample(n=self.n)
                     result = result.append(df)
             result.to_csv(self.f_out)
-            basic.log('created %s' % self.f_out)
+            utils.log('created %s' % self.f_out)
 
 class Combine_Edit_Counts(Combine_Dumps):
     def __init__(self,base_dir,f_out,ratio=False,debug=False,n=None):
