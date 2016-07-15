@@ -8,4 +8,5 @@ multilingual_wiki_coding_utilities/*.json
 multilingual_wiki_coding_utilities/.credentials
 stata_files/*.tsv
 stata_files/*.log
+stata_files/*.dta
 
