@@ -392,7 +392,7 @@ def main():
             df = c.rev_size()
             if args.lang == 'en':
                 clean_en = Clean_En(df)
-                df = Clean_En.clean()
+                df = clean_en.clean()
             t.page_test(edit_df_path,page_df_path)
             df = c.link_documents(df)
             t.linked_test(edit_df_path,page_df_path,linked_df_path)
