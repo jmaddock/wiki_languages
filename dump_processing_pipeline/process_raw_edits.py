@@ -243,7 +243,7 @@ class Clean_En(object):
             self.df = df
         else:
             fname = os.path.join(config.ROOT_PROCESSED_DIR,'en',config.EDIT_COUNTS)
-            df = pd.read_csv(fname,na_values={'title':''},keep_default_na=False,dtype={'title': object})
+            self.df = pd.read_csv(fname,na_values={'title':''},keep_default_na=False,dtype={'title': object})
         self.dropped_articles = 0
         
     def clean(self):

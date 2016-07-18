@@ -3,8 +3,7 @@
 import os
 
 ROOT_RAW_XML_DIR = '/com/raw_data/maddock_wiki_languages/wiki_11_13_2015/'
-ROOT_PROCESSED_DIR = '/usr/lusers/maddock/dev/wiki_languages/db/'
-SCRIPT_DIR = os.path.abspath(__file__)
+ROOT_PROCESSED_DIR = '/com/raw_data/maddock_wiki_languages/processed/'
 
 ## File Names
 RAW_EDITS_BASE = 'raw_edits_'
