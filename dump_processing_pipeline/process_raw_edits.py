@@ -238,18 +238,35 @@ class Page_Edit_Counter(object):
         return merged
 
 class Clean_En(object):
-    def __init__(self,df):
-        self.df = df
-        self.dropped_articles = None
+    def __init__(self,df=None):
+        if df:
+            self.df = df
+        else:
+            fname = os.path.join(config.ROOT_PROCESSED_DIR,'en',config.EDIT_COUNTS)
+            df = pd.read_csv(fname,na_values={'title':''},keep_default_na=False,dtype={'title': object})
+        self.dropped_articles = 0
         
     def clean(self):
         df = self.df
         df = df.set_index('page_id',drop=False)
-        df = df.set_value(2474652, 'title', 'Sam Vincent (disambiguation)')
-        df = df.set_value(1877838, 'title', 'Bugatti Chiron (disambiguation)')
-        drop = [1826283,27902244]
-        self.dropped_articles = len(drop)
-        df = df.drop(drop)
+        try:
+            df = df.set_value(2474652, 'title', 'Sam Vincent (disambiguation)')
+        except ValueError:
+            utils.log('page id 27902244 not contained in df')
+        try:
+            df = df.set_value(1877838, 'title', 'Bugatti Chiron (disambiguation)')
+        except ValueError:
+            utils.log('page id 1877838 not contained in df')
+        try:
+            df = df.drop(1826283)
+            self.dropped_articles += 1
+        except ValueError:
+            utils.log('page id 1826283 not contained in df')
+        try:
+            df = df.drop(27902244)
+            self.dropped_articles += 1
+        except ValueError:
+            utils.log('page id 27902244 not contained in df')
         return df
 
 class Robustness_Tester(Page_Edit_Counter):
@@ -392,7 +409,7 @@ def main():
             df = c.rev_size()
             if args.lang == 'en':
                 clean_en = Clean_En(df)
-                df = Clean_En.clean()
+                df = clean_en.clean()
             t.page_test(edit_df_path,page_df_path)
             df = c.link_documents(df)
             t.linked_test(edit_df_path,page_df_path,linked_df_path)
