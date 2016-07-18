@@ -1,7 +1,6 @@
 import os
 import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from mw import xml_dump,Timestamp
 from collections import Counter
 import pandas as pd
 import datetime
@@ -238,13 +237,30 @@ class Page_Edit_Counter(object):
         merged.to_csv(result_path,na_rep='NaN',columns=columns,encoding='utf-8')
         return merged
 
+class Clean_En(object):
+    def __init__(self,df):
+        self.df = df
+        self.dropped_articles = None
+        
+    def clean(self):
+        df = self.df
+        df = df.set_index('page_id',drop=False)
+        df = df.set_value(2474652, 'title', 'Sam Vincent (disambiguation)')
+        df = df.set_value(1877838, 'title', 'Bugatti Chiron (disambiguation)')
+        drop = [1826283,27902244]
+        self.dropped_articles = len(drop)
+        df = df.drop(drop)
+        return df
+
 class Robustness_Tester(Page_Edit_Counter):
 
-    def __init__(self,drop1,lang,no_bots):
+    def __init__(self,drop1,lang,no_bots,dropped=0):
         utils.log('loading test module')
         self.drop1 = drop1
         self.lang = lang
         self.no_bots = no_bots
+        # number of edits dropped from cleaning (in EN)
+        self.dropped = dropped
 
     def page_test(self,edit_df_path,page_df_path):
         utils.log('running basic document tests')
@@ -374,9 +390,10 @@ def main():
             cd.combine()
         if args.counts:
             df = c.rev_size()
-            t.page_test(edit_df_path,page_df_path)
             if args.lang == 'en':
-                utils.clean_en()
+                clean_en = Clean_En(df)
+                df = Clean_En.clean()
+            t.page_test(edit_df_path,page_df_path)
             df = c.link_documents(df)
             t.linked_test(edit_df_path,page_df_path,linked_df_path)
         if args.append:

@@ -51,6 +51,7 @@ class Combine_Dumps(object):
                     result = result.append(df)
             result.to_csv(self.f_out)
             utils.log('created %s' % self.f_out)
+            return result
 
 class Combine_Edit_Counts(Combine_Dumps):
     def __init__(self,base_dir,f_out,ratio=False,debug=False,n=None):
