@@ -239,7 +239,7 @@ class Page_Edit_Counter(object):
 
 class Clean_En(object):
     def __init__(self,df=None):
-        if df:
+        if isinstance(df, pd.DataFrame):
             self.df = df
         else:
             fname = os.path.join(config.ROOT_PROCESSED_DIR,'en',config.EDIT_COUNTS)
@@ -386,6 +386,8 @@ def main():
                         help='create a csv of edit counts per article from a csv of raw edits')
     parser.add_argument('--combine',action='store_true',
                         help='combine raw edit files before processing')
+    parser.add_argument('--clean',action='store_true',
+                        help='for debugging only (included in --counts). clean the english language version')
     args = parser.parse_args()
     if args.job_script:
         job_script(args)
@@ -418,6 +420,9 @@ def main():
             #t.merged_test(linked_df_path,merged_df_path)
             df = c.edit_ratios(df)
             t.merged_test(linked_df_path,ratio_df_path)
+        if args.clean:
+            clean_en = Clean_En()
+            df = clean_en.clean()
         
 if __name__ == "__main__":
     main()
