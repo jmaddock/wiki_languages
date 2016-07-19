@@ -100,6 +100,10 @@ class Page_Edit_Counter(object):
     ## reduce edit csv to page level csv counting edits
     ## INCLUDES TIMEDELTA AND NUM_EDITORS
     def rev_size(self,v=False):
+        if self.no_bots:
+            if not os.path.isfile(config.BOT_LIST):
+                utils.log('missing bot list file!')
+                return False
         utils.log('creating %s edit counts' % self.wiki_name)
         f_in_name = os.path.join(self.db_path,config.COMBINED_RAW_EDITS)
         utils.log('loading data from file %s' % f_in_name)
