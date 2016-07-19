@@ -271,6 +271,8 @@ class Clean_En(object):
             self.dropped_articles += 1
         except ValueError:
             utils.log('page id 27902244 not contained in df')
+        result_path = os.path.join(self.db_path,config.EDIT_COUNTS)
+        df.to_csv(result_path,na_rep='NaN',columns=columns,encoding='utf-8')
         return df
 
 class Robustness_Tester(Page_Edit_Counter):
@@ -365,6 +367,8 @@ def job_script(args):
             out = out + ' --append'
         if args.combine:
             out = out + ' --combine'
+        if args.link:
+            out = out + ' --link'
         out = out + '\n'
         print(out)
         f.write(out)
