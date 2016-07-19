@@ -386,6 +386,8 @@ def main():
                         help='drop all bot edits from counts')
     parser.add_argument('--append',action='store_true',
                         help='create joined talk/article .csv files for modeling (1 row per talk/article pair)')
+    parser.add_argument('--link',action='store_true',
+                        help='match articles and talk pages by title')
     parser.add_argument('--counts',action='store_true',
                         help='create a csv of edit counts per article from a csv of raw edits')
     parser.add_argument('--combine',action='store_true',
@@ -417,6 +419,7 @@ def main():
                 clean_en = Clean_En(df)
                 df = clean_en.clean()
             t.page_test(edit_df_path,page_df_path)
+        if args.link:
             df = c.link_documents(df)
             t.linked_test(edit_df_path,page_df_path,linked_df_path)
         if args.append:
