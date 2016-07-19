@@ -2,8 +2,8 @@
 
 import os
 
-ROOT_RAW_XML_DIR = '/com/raw_data/maddock_wiki_languages/wiki_11_13_2015/'
-ROOT_PROCESSED_DIR = '/usr/lusers/maddock/dev/wiki_languages/db/'
+ROOT_RAW_XML_DIR = '/Users/klogg/research_data/wiki_language_data/dumps/'
+ROOT_PROCESSED_DIR = '/Users/klogg/research_data/wiki_language_data/processed/'
 SCRIPT_DIR = os.path.abspath(__file__)
 
 ## File Names
@@ -25,5 +25,5 @@ DROP1_SUFFIX = 'drop1'
 QUOTE_ESCAPE_CHAR = '&quot'
 
 ## data files
-BOT_LIST = '/usr/lusers/maddock/dev/wiki_languages/dump_processing_pipeline/bot_list.csv'
-LANG_LIST = '/usr/lusers/maddock/dev/wiki_languages/dump_processing_pipeline/langs.csv'
+BOT_LIST = '/Users/klogg/dev/wiki_languages/dump_processing_pipeline/bot_list.csv'
+LANG_LIST = '/Users/klogg/dev/wiki_languages/dump_processing_pipeline/langs.csv'
