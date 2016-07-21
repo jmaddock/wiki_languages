@@ -277,13 +277,13 @@ class Clean_En(object):
 
 class Robustness_Tester(Page_Edit_Counter):
 
-    def __init__(self,drop1,lang,no_bots,dropped=0):
+    def __init__(self,drop1,lang,no_bots):
         utils.log('loading test module')
         self.drop1 = drop1
         self.lang = lang
         self.no_bots = no_bots
         # number of edits dropped from cleaning (in EN)
-        self.dropped = dropped
+        self.clean_en = clean_en
 
     def page_test(self,edit_df_path,page_df_path):
         utils.log('running basic document tests')
@@ -422,7 +422,8 @@ def main():
             if args.lang == 'en':
                 clean_en = Clean_En(df)
                 df = clean_en.clean()
-            t.page_test(edit_df_path,page_df_path)
+            else:
+                t.page_test(edit_df_path,page_df_path)
         if args.link:
             df = c.link_documents(df)
             t.linked_test(edit_df_path,page_df_path,linked_df_path)

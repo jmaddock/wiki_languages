@@ -21,8 +21,10 @@ class Combine_Dumps(object):
         if lang and not files:
             self.base_dir = os.path.join(self.base_dir,lang)
             self.files = self.get_files(self.base_dir)
-        else:
+        elif files:
             self.files = files
+        else:
+            self.files = self.get_files(self.base_dir)
         if f_out:
             self.f_out = f_out
         else:
@@ -55,19 +57,20 @@ class Combine_Dumps(object):
 
 class Combine_Edit_Counts(Combine_Dumps):
     def __init__(self,base_dir,f_out,ratio=False,debug=False,n=None):
-        self.f_out = f_out
+        if not f_out:
+            f_out = os.path.join(config.ROOT_PROCESSED_DIR,'combined',config.COMBINED_EDIT_RATIOS)
         self.debug = debug
         if ratio:
             self.base_file_name = config.MERGED_EDIT_RATIOS
         else:
             self.base_file_name = config.MERGED_EDIT_COUNTS
-        Combine_Dumps.__init__(self,None,f_out,base_dir,True,n=n)
+        Combine_Dumps.__init__(self,base_dir=base_dir,f_out=f_out,n=n)
 
     def get_files(self,base_dir):
         files = []
         for root, directories, filenames in os.walk(base_dir):
             for filename in filenames:
-                if self.base_file_name in filename and 'simple' not in root and 'combine' not in root:
+                if self.base_file_name in filename and 'combine' not in root:
                     files.append(os.path.join(root,filename))
         if self.debug:
             print(files)
