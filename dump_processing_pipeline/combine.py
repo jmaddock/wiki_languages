@@ -70,8 +70,13 @@ class Combine_Edit_Counts(Combine_Dumps):
         files = []
         for root, directories, filenames in os.walk(base_dir):
             for filename in filenames:
-                if self.base_file_name in filename and 'combine' not in root:
-                    files.append(os.path.join(root,filename))
+                if self.debug:
+                    if self.base_file_name in filename and 'combine' not in root:
+                        files.append(os.path.join(root,filename))
+                else:
+                    if self.base_file_name in filename and 'combine' not in root and 'simple' not in root:
+                        files.append(os.path.join(root,filename))
+                    
         if self.debug:
             print(files)
             return None
