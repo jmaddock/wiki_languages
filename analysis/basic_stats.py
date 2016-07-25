@@ -8,7 +8,7 @@ import utils
 
 class ML_WP_Analyzer(object):
 
-    def __init__(self,infile,analysis_unit,outfile=None):
+    def __init__(self,infile,analysis_unit,namespace,outfile=None):
         # raw dataframe
         self.df = pd.read_csv(infile,
                               na_values={'title':''},
@@ -18,15 +18,16 @@ class ML_WP_Analyzer(object):
         self.outfile = outfile
         # dataframe of basic stats
         self.result = None
+        self.namespace = namespace
         # unit of analysis (edits or editors)
         if analysis_unit == 'edits':
-            self.analysis_unit = 'len'
+            self.analysis_unit = 'len_{0}'.format(self.namespace)
         elif analysis_unit == 'edits':
-            self.analysis_unit = 'num_editors'
+            self.analysis_unit = 'num_editors_{0}'.format(self.namespace)
         else:
             utils.log('invalid unit of analysis!')
             sys.exit(0)
-
+        
     def generate_stats(self):
         # construct the "index" from unique languages
         result = pd.DataFrame({'lang':self.df['lang'].unique()})
@@ -45,6 +46,9 @@ class ML_WP_Analyzer(object):
 
     def write_csv(self):
         self.result.to_csv(self.outfile,encoding='utf-8',index=False)
+
+    #def _format_outfile(outfile):
+    #    outfile = 
 
     def _get_totals(self):
         utils.log('calculating totals')
@@ -69,18 +73,25 @@ class ML_WP_Analyzer(object):
 def main():
     parser = argparse.ArgumentParser(description='generate sheet of basic stats for each language')
     parser.add_argument('-i','--infile',
-                        default=config.COMBINED_EDIT_RATIOS,
+                        default=os.path.join(config.ROOT_PROCESSED_DIR,'combined',config.COMBINED_EDIT_RATIOS),
                         help='csv of all language edits')
     parser.add_argument('-o','--outfile',
                         default=os.path.join(config.RESULTS_DIR,config.BASIC_STATS),
                         help='output file path for results')
     parser.add_argument('-u','--analysis_unit',
                         default='edits',
+                        choices=['edits','editors'],
                         help='unit for analysis (edits or editors)')
+    parser.add_argument('-n','--namespace',
+                        default=1,
+                        type=int,
+                        choices=[0,1],
+                        help='namespace for analysis (0 or 1)')
     args = parser.parse_args()
     a = ML_WP_Analyzer(infile=args.infile,
                        outfile=args.outfile,
-                       analysis_unit=args.analysis_unit)
+                       analysis_unit=args.analysis_unit,
+                       namespace=args.namespace)
     a.generate_stats()
     a.write_csv()
 
