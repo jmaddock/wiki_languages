@@ -14,11 +14,9 @@ class ML_WP_Analyzer(object):
                               na_values={'title':''},
                               keep_default_na=False,
                               dtype={'title': object})
-        # path to write .csv of results
-        self.outfile = outfile
+        self.namespace = namespace
         # dataframe of basic stats
         self.result = None
-        self.namespace = namespace
         # unit of analysis (edits or editors)
         if analysis_unit == 'edits':
             self.analysis_unit = 'len_{0}'.format(self.namespace)
@@ -27,6 +25,11 @@ class ML_WP_Analyzer(object):
         else:
             utils.log('invalid unit of analysis!')
             sys.exit(0)
+        # path to write .csv of results, if
+        if outfile == 'default':
+            self.outfile = self._format_outfile_name(outfile)
+        else:
+            self.outfile = outfile
         
     def generate_stats(self):
         # construct the "index" from unique languages
@@ -45,10 +48,15 @@ class ML_WP_Analyzer(object):
         return result
 
     def write_csv(self):
-        self.result.to_csv(self.outfile,encoding='utf-8',index=False)
+        if self.outfile:
+            self.result.to_csv(self.outfile,encoding='utf-8',index=False)
+        else:
+            utils.log('No outfile specified!')
 
-    #def _format_outfile(outfile):
-    #    outfile = 
+    def _format_outfile_name(self,outfile):
+        outfile = os.path.join(config.RESULTS_DIR,config.BASIC_STATS)
+        outfile = outfile.replace('.csv','_{0}_{1}.csv'.format(self.analysis_unit,self.namespace))
+        return outfile
 
     def _get_totals(self):
         utils.log('calculating totals')
@@ -76,7 +84,7 @@ def main():
                         default=os.path.join(config.ROOT_PROCESSED_DIR,'combined',config.COMBINED_EDIT_RATIOS),
                         help='csv of all language edits')
     parser.add_argument('-o','--outfile',
-                        default=os.path.join(config.RESULTS_DIR,config.BASIC_STATS),
+                        default='default',
                         help='output file path for results')
     parser.add_argument('-u','--analysis_unit',
                         default='edits',
