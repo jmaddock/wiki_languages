@@ -20,7 +20,7 @@ class ML_WP_Analyzer(object):
         # unit of analysis (edits or editors)
         if analysis_unit == 'edits':
             self.analysis_unit = 'len_{0}'.format(self.namespace)
-        elif analysis_unit == 'edits':
+        elif analysis_unit == 'editors':
             self.analysis_unit = 'num_editors_{0}'.format(self.namespace)
         else:
             utils.log('invalid unit of analysis!')
@@ -54,8 +54,8 @@ class ML_WP_Analyzer(object):
             utils.log('No outfile specified!')
 
     def _format_outfile_name(self,outfile):
-        outfile = os.path.join(config.RESULTS_DIR,config.BASIC_STATS)
-        outfile = outfile.replace('.csv','_{0}_{1}.csv'.format(self.analysis_unit,self.namespace))
+        outfile = os.path.join(config.RESULTS_DIR,config.BASIC_STATS)    
+        outfile = outfile.replace('.csv','_{0}.csv'.format(self.analysis_unit))
         return outfile
 
     def _get_totals(self):
