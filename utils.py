@@ -82,15 +82,29 @@ def job_script(args):
         
 def main():
     parser = argparse.ArgumentParser(description='process wiki data')
-    parser.add_argument('--clean_en',action='store_true')
-    parser.add_argument('--drop_cols',action='store_true')
-    parser.add_argument('--drop1',action='store_true')
-    parser.add_argument('--ss',action='store_true')
-    parser.add_argument('--drop_outliers',action='store_true')
-    parser.add_argument('-i','--infile')
-    parser.add_argument('-o','--outfile')
-    parser.add_argument('-n','--num')
-    parser.add_argument('-j','--job_script')
+    parser.add_argument('--clean_en',
+                        action='store_true',
+                        help='script for cleaning EN edit counts so it passes tests')
+    parser.add_argument('--drop_cols',
+                        action='store_true',
+                        help='drop columns not required for models (titles, etc.)')
+    parser.add_argument('--drop1',
+                        action='store_true',
+                        help='drop single pages with single editors and edits')
+    parser.add_argument('--ss',
+                        action='store_true',
+                        help='shuffle and split the dataset for creating persistent random samples')
+    parser.add_argument('--drop_outliers',
+                        action='store_true',
+                        help='drop a single outlier from the EN edit counts in order to reach model convergence')
+    parser.add_argument('-i','--infile',
+                        help='input file path')
+    parser.add_argument('-o','--outfile',
+                        help='ouput file path')
+    parser.add_argument('-n','--num',
+                        help='number of outliers to drop or number of splits')
+    parser.add_argument('-j','--job_script',
+                        help='create a job script')
     args = parser.parse_args()
     if args.job_script:
         job_script(args)

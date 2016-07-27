@@ -14,7 +14,12 @@ class ML_WP_Analyzer(object):
                               na_values={'title':''},
                               keep_default_na=False,
                               dtype={'title': object})
-        self.namespace = namespace
+        # wiki namespace (0 or 1)
+        if (namespace == None and (analysis_unit in ['edit_ratios','editor_ratios'])) or namespace in [0,1]:
+            self.namespace = namespace
+        else:
+            utils.log('invalid namespace and unit of analysis combination!')
+            sys.exit(0)
         # dataframe of basic stats
         self.result = None
         # unit of analysis (edits or editors)
@@ -22,10 +27,15 @@ class ML_WP_Analyzer(object):
             self.analysis_unit = 'len_{0}'.format(self.namespace)
         elif analysis_unit == 'editors':
             self.analysis_unit = 'num_editors_{0}'.format(self.namespace)
+        elif analysis_unit == 'edit_ratios':
+            self.analysis_unit = 'ratio'
+        elif analysis_unit == 'editor_ratios':
+            self.analysis_unit = 'editor_ratio'
         else:
             utils.log('invalid unit of analysis!')
             sys.exit(0)
-        # path to write .csv of results, if
+        # path to write .csv of results
+        # if outfile = 'default', create path from config file
         if outfile == 'default':
             self.outfile = self._format_outfile_name(outfile)
         else:
@@ -34,6 +44,7 @@ class ML_WP_Analyzer(object):
     def generate_stats(self):
         # construct the "index" from unique languages
         result = pd.DataFrame({'lang':self.df['lang'].unique()})
+        result = result.append(pd.DataFrame([{'lang':'all'}]))
         # find the totals for each language
         result = result.merge(self._get_totals(),on='lang')
         # find the means for each language
@@ -60,23 +71,33 @@ class ML_WP_Analyzer(object):
 
     def _get_totals(self):
         utils.log('calculating totals')
-        return self.df.groupby('lang')[self.analysis_unit].sum().to_frame('total').reset_index()
+        by_lang = self.df.groupby('lang')[self.analysis_unit].sum().to_frame('total').reset_index()
+        total = pd.DataFrame([{'lang':'all','total':self.df[self.analysis_unit].sum()}])
+        return by_lang.append(total).reset_index(drop=True)
 
     def _get_means(self):
         utils.log('calculating means')
-        return self.df.groupby('lang')[self.analysis_unit].mean().to_frame('mean').reset_index()
-
+        by_lang = self.df.groupby('lang')[self.analysis_unit].mean().to_frame('mean').reset_index()
+        total = pd.DataFrame([{'lang':'all','mean':self.df[self.analysis_unit].mean()}])
+        return by_lang.append(total).reset_index(drop=True)
+        
     def _get_medians(self):
         utils.log('calculating medians')
-        return self.df.groupby('lang')[self.analysis_unit].median().to_frame('median').reset_index()
+        by_lang = self.df.groupby('lang')[self.analysis_unit].median().to_frame('median').reset_index()
+        total = pd.DataFrame([{'lang':'all','median':self.df[self.analysis_unit].median()}])
+        return by_lang.append(total).reset_index(drop=True)
 
     def _get_std(self):
         utils.log('calculating standard deviations')
-        return self.df.groupby('lang')[self.analysis_unit].std().to_frame('std').reset_index()
+        by_lang = self.df.groupby('lang')[self.analysis_unit].std().to_frame('std').reset_index()
+        total = pd.DataFrame([{'lang':'all','std':self.df[self.analysis_unit].std()}])
+        return by_lang.append(total).reset_index(drop=True)
 
     def _get_var(self):
         utils.log('calculating variance')
-        return self.df.groupby('lang')[self.analysis_unit].var().to_frame('var').reset_index()
+        by_lang = self.df.groupby('lang')[self.analysis_unit].var().to_frame('var').reset_index()
+        total = pd.DataFrame([{'lang':'all','var':self.df[self.analysis_unit].var()}])
+        return by_lang.append(total).reset_index(drop=True)
         
 def main():
     parser = argparse.ArgumentParser(description='generate sheet of basic stats for each language')
@@ -88,12 +109,12 @@ def main():
                         help='output file path for results')
     parser.add_argument('-u','--analysis_unit',
                         default='edits',
-                        choices=['edits','editors'],
+                        choices=['edits','editors','edit_ratios','editor_ratios'],
                         help='unit for analysis (edits or editors)')
     parser.add_argument('-n','--namespace',
-                        default=1,
+                        default=None,
                         type=int,
-                        choices=[0,1],
+                        choices=[0,1,None],
                         help='namespace for analysis (0 or 1)')
     args = parser.parse_args()
     a = ML_WP_Analyzer(infile=args.infile,
