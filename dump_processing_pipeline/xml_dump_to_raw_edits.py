@@ -9,6 +9,7 @@ import subprocess
 import codecs
 import argparse
 import config
+import translations
 
 SCRIPT_DIR = os.path.abspath(__file__)
 
@@ -85,28 +86,45 @@ class CSV_Creator(object):
             self.dh.remove_dump()
 
     def create_csv_document(self,page,db_file):
+        # create a list to track already used edit hashes
         rt = Revert_Tracker()
+        # results dictionary for each page
         d = {}
+        # get the page id
         d['page_id'] = page.id
+        # get the namespace (0 or 1)
         d['namespace'] = page.namespace
+        # if the page is a talk page, strip "Talk:" from the title
         if page.namespace == 1:
-            d['title'] = page.title.split(':',1)[-1].replace('"',config.QUOTE_ESCAPE_CHAR).strip()
+            stripped_title = page.title.split(':',1)[-1]
         else:
-            d['title'] = page.title.replace('"',config.QUOTE_ESCAPE_CHAR).strip()
-        
-        #d['title'] = page.title.replace('Talk:','').replace('"','').strip()
+            stripped_title = page.title
+        # replace quote chars with an escape character, remove trailing spaces, and convert to lowercase
+        stripped_title = stripped_title.replace('"',config.QUOTE_ESCAPE_CHAR).strip().lower()
+        # remove trailing "/archive" from the title
+        d['title'] = stripped_title.split()[0]
+        # get the archive number or title (if any)
+        if len(stripped_title.split('/{0}'.format(translations.translations['archive'][self.lang]))) > 1:
+            d['archive'] = stripped_title.split('/{0}'.format(translations.translations['archive'][self.lang]))[1].strip()
+        else:
+            d['archive'] = None
         for rev in page:
             r = {}
+            # replace quote chars in user text
             if rev.contributor.user_text:
                 r['user_text'] = rev.contributor.user_text.replace('"','')
             else:
                 r['user_text'] = rev.contributor.user_text
+            # get the user id
             r['user_id'] = rev.contributor.id
+            # determine if the revert hash has been used previously, set revert to True or False
             r['revert'] = rt.is_revert(rev.sha1)
+            # get the datetime of the edit
             r['ts'] = str(datetime.datetime.fromtimestamp(rev.timestamp))
-            result = '%s,%s,"%s","%s",%s,"%s","%s"\n' % (d['page_id'],
+            result = '%s,%s,"%s","%s","%s",%s,"%s","%s"\n' % (d['page_id'],
                                                          d['namespace'],
                                                          d['title'],
+                                                         d['archive'],
                                                          r['user_text'],
                                                          r['user_id'],
                                                          r['revert'],
@@ -142,21 +160,25 @@ def job_script(job_script_file_name,lang_list=None):
             out = 'python3 {0} -l {6} -i {1} -o {2}{3}/{4}{5}.csv\n'.format(SCRIPT_DIR,f,config.ROOT_PROCESSED_DIR,l,config.RAW_EDITS_BASE,i+1,l)
             job_script.write(out)
 
-# --num flag is DEPRECIATED. use --job_script to create commands with correct --infile and --outfile flags
-# use --num flag with default file structure
-# only use --infile and --outfile without --num flag
 def main():
     parser = argparse.ArgumentParser(description='process wiki dumps')
-    parser.add_argument('-l','--lang',nargs='*')
-    parser.add_argument('-i','--infile')
-    parser.add_argument('-o','--outfile')
-    parser.add_argument('-j','--job_script')
-    parser.add_argument('-d','--debug',type=int)
+    parser.add_argument('-l','--lang',
+                        nargs='*',
+                        help='the language of the xml dump')
+    parser.add_argument('-i','--infile',
+                        help='the file path of a wikipedia xml dump to process')
+    parser.add_argument('-o','--outfile',
+                        help='a file path for an output .csv of edits')
+    parser.add_argument('-j','--job_script',
+                        help='the path to output a job script file for HYAK batch processing')
+    parser.add_argument('-d','--debug',
+                        type=int,
+                        help='the number of iterations through the file xml dump to process, enter 0 to process the entire dump but do not decompress file')
     args = parser.parse_args()
     if args.job_script:
         job_script(args.job_script,args.lang)
     else:
-        c = CSV_Creator(args.lang)
+        c = CSV_Creator(args.lang[0])
         infile = args.infile
         outfile = args.outfile
         c.single_import_from_dump(infile,outfile,debug=args.debug)
