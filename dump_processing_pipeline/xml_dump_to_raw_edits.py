@@ -150,7 +150,7 @@ class CSV_Creator(object):
         #print(df.loc[df['page_id'] == 41])
         #print(df.loc[df['title'].str.contains('American')])
         assert len(df.loc[df['namespace'] == 0]['title'].unique()) == len(df.loc[df['namespace'] == 0]['page_id'].unique())
-        assert len(df.loc[df['namespace'] == 1]['title'].unique()) == len(df.loc[df['namespace'] == 1]['page_id'].unique())
+        assert len(df.loc[(df['namespace'] == 1) & (df['archive'] == 'None')]['title'].unique()) == len(df.loc[(df['namespace'] == 1) & (df['archive'] == 'None')]['page_id'].unique())
         utils.log('passed title uniqueness test: equal number of unique titles and page_ids')
         assert len(df.loc[(df['namespace'] >= 0) & (df['namespace'] <= 1)]) == len(df)
         utils.log('passed namespace test: namespaces equal 0 or 1')
