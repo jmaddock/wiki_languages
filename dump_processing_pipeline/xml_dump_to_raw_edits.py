@@ -102,14 +102,16 @@ class CSV_Creator(object):
         stripped_title = stripped_title.replace('"',config.QUOTE_ESCAPE_CHAR).strip()#.lower()
         # remove trailing "/archive" from the title
         # get the archive number or title (if any)
-        if len(stripped_title.split('/{0}'.format(translations.translations['archive'][self.lang]))) > 1:
+        if len(stripped_title.split('/{0}'.format(translations.translations['archive'][self.lang]))) > 1 and page.namespace == 1:
             d['title'] = stripped_title.split('/{0}'.format(translations.translations['archive'][self.lang]))[0]
             d['archive'] = stripped_title.split('/{0}'.format(translations.translations['archive'][self.lang]))[1].strip()
-            print(d['archive'])
+            # if no text follows "/archive" in the title, add a 0
+            if len(d['archive']) < 1:
+                d['archive'] = 0
         else:
             d['archive'] = None
             d['title'] = stripped_title
-            self.page_count += 1
+        self.page_count += 1
         for rev in page:
             r = {}
             # replace quote chars in user text
@@ -131,7 +133,6 @@ class CSV_Creator(object):
                                                               r['user_id'],
                                                               r['revert'],
                                                               r['ts'])
-            #if not d['archive']:
             self.edit_count += 1
             db_file.write(result)
 
