@@ -69,7 +69,7 @@ class CSV_Creator(object):
     def single_import_from_dump(self,f_in=None,f_out=None,n=None,v=False,debug=False):
         self.dh = Single_Dump_Handler(f_in)
         db_file = open(f_out,'w')
-        db_file.write('"page_id","namespace","title","user_text","user_id","revert","ts"\n')
+        db_file.write('"page_id","namespace","title","archive","user_text","user_id","revert","ts"\n')
         if debug is not None:
             self.dh.open_dump()
         else:
@@ -78,7 +78,6 @@ class CSV_Creator(object):
         for page in self.dh.dump:
             if page.namespace == 1 or page.namespace == 0:
                 self.create_csv_document(page,db_file)
-                self.page_count += 1
             if debug and debug > 0 and debug == self.page_count:
                 break
         utils.log('processed %s pages and %s edits' % (self.page_count,self.edit_count))
@@ -100,14 +99,17 @@ class CSV_Creator(object):
         else:
             stripped_title = page.title
         # replace quote chars with an escape character, remove trailing spaces, and convert to lowercase
-        stripped_title = stripped_title.replace('"',config.QUOTE_ESCAPE_CHAR).strip().lower()
+        stripped_title = stripped_title.replace('"',config.QUOTE_ESCAPE_CHAR).strip()#.lower()
         # remove trailing "/archive" from the title
-        d['title'] = stripped_title.split()[0]
         # get the archive number or title (if any)
         if len(stripped_title.split('/{0}'.format(translations.translations['archive'][self.lang]))) > 1:
+            d['title'] = stripped_title.split('/{0}'.format(translations.translations['archive'][self.lang]))[0]
             d['archive'] = stripped_title.split('/{0}'.format(translations.translations['archive'][self.lang]))[1].strip()
+            print(d['archive'])
         else:
             d['archive'] = None
+            d['title'] = stripped_title
+            self.page_count += 1
         for rev in page:
             r = {}
             # replace quote chars in user text
@@ -122,13 +124,14 @@ class CSV_Creator(object):
             # get the datetime of the edit
             r['ts'] = str(datetime.datetime.fromtimestamp(rev.timestamp))
             result = '%s,%s,"%s","%s","%s",%s,"%s","%s"\n' % (d['page_id'],
-                                                         d['namespace'],
-                                                         d['title'],
-                                                         d['archive'],
-                                                         r['user_text'],
-                                                         r['user_id'],
-                                                         r['revert'],
-                                                         r['ts'])
+                                                              d['namespace'],
+                                                              d['title'],
+                                                              d['archive'],
+                                                              r['user_text'],
+                                                              r['user_id'],
+                                                              r['revert'],
+                                                              r['ts'])
+            #if not d['archive']:
             self.edit_count += 1
             db_file.write(result)
 
@@ -139,6 +142,12 @@ class CSV_Creator(object):
         utils.log('passed edit count test: iteration count and document line count match')
         assert len(df['page_id'].unique()) == self.page_count
         utils.log('passed page count test: iteration count and unique page_id match')
+        #print(len(df.loc[df['namespace'] == 0]['title'].unique()),len(df.loc[df['namespace'] == 0]['page_id'].unique()))
+        #titles = df.loc[df['namespace'] == 0].drop_duplicates('title')
+        #ids = df.loc[df['namespace'] == 0].drop_duplicates('page_id')
+        #print((ids.loc[~ids['page_id'].isin(titles['page_id'])]))
+        #print(df.loc[df['page_id'] == 41])
+        #print(df.loc[df['title'].str.contains('American')])
         assert len(df.loc[df['namespace'] == 0]['title'].unique()) == len(df.loc[df['namespace'] == 0]['page_id'].unique())
         assert len(df.loc[df['namespace'] == 1]['title'].unique()) == len(df.loc[df['namespace'] == 1]['page_id'].unique())
         utils.log('passed title uniqueness test: equal number of unique titles and page_ids')
