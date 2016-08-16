@@ -167,7 +167,9 @@ def job_script(job_script_file_name,lang_list=None):
         file_list = [os.path.join(base_lang_dir,x) for x in os.listdir(base_lang_dir) if '.7z' in x]
         utils.log(file_list)
         for i,f in enumerate(file_list):
-            out = 'python3 {0} -l {6} -i {1} -o {2}{3}/{4}{5}.csv\n'.format(SCRIPT_DIR,f,config.ROOT_PROCESSED_DIR,l,config.RAW_EDITS_BASE,i+1,l)
+            outfile_name = '{0}{1}.csv'.format(config.RAW_EDITS_BASE,i+1)
+            outfile_path = os.path.join(config.ROOT_PROCESSED_DIR,l,fname)
+            out = 'python3 {0} -l {1} -i {2} -o {3}\n'.format(SCRIPT_DIR,f,outfile_path)
             job_script.write(out)
 
 def main():
