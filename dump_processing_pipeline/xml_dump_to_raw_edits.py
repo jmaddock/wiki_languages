@@ -168,8 +168,8 @@ def job_script(job_script_file_name,lang_list=None):
         utils.log(file_list)
         for i,f in enumerate(file_list):
             outfile_name = '{0}{1}.csv'.format(config.RAW_EDITS_BASE,i+1)
-            outfile_path = os.path.join(config.ROOT_PROCESSED_DIR,l,fname)
-            out = 'python3 {0} -l {1} -i {2} -o {3}\n'.format(SCRIPT_DIR,f,outfile_path)
+            outfile_path = os.path.join(config.ROOT_PROCESSED_DIR,l,outfile_name)
+            out = 'python3 {0} -l {1} -i {2} -o {3}\n'.format(SCRIPT_DIR,l,f,outfile_path)
             job_script.write(out)
 
 def main():
