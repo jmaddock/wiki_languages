@@ -207,7 +207,7 @@ class Page_Edit_Counter(object):
         if not isinstance(df, pd.DataFrame):
             f_in_name = os.path.join(self.db_path,config.LINKED_EDIT_COUNTS)
             utils.log('loading data from file %s' % f_in_name)
-            df = pd.read_csv(f_in_name,na_values={'title':''},keep_default_na=False,dtype={'title': object})
+            df = pd.read_csv(f_in_name,na_values={'title':''},keep_default_na=False,dtype={'title': object} )
         df.page_id = df.page_id.astype(float)
         df.linked_id = df.linked_id.astype(float)
         df = df.loc[df['linked_id'].notnull()]
@@ -378,7 +378,6 @@ def job_script(args):
 def main():
     parser = argparse.ArgumentParser(description='process wiki data')
     parser.add_argument('-l','--lang',
-                        required=True,
                         help='the two letter wiki language codes to to process')
     parser.add_argument('-b','--base_dir',
                         help='base dir containing language directories if not using config file')

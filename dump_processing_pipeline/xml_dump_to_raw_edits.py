@@ -138,7 +138,7 @@ class CSV_Creator(object):
 
     def document_robustness_checks(self,f_in):
         utils.log('running document tests')
-        df = pd.read_csv(f_in,na_values={'title':''},keep_default_na=False)
+        df = pd.read_csv(f_in,na_values={'title':''},keep_default_na=False,dtype={'title': object})
         assert len(df) == self.edit_count
         utils.log('passed edit count test: iteration count and document line count match')
         assert len(df['page_id'].unique()) == self.page_count
