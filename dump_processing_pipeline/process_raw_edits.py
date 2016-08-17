@@ -283,7 +283,7 @@ class Robustness_Tester(Page_Edit_Counter):
         self.lang = lang
         self.no_bots = no_bots
         # number of edits dropped from cleaning (in EN)
-        self.clean_en = clean_en
+        #self.clean_en = Clean_En()
 
     def page_test(self,edit_df_path,page_df_path):
         utils.log('running basic document tests')
