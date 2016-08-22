@@ -97,6 +97,17 @@ class Page_Edit_Counter(object):
         df = df.loc[df['is_bot'] == False]
         return df
 
+    ## remove all rows containing an archive to get only active page ids
+    ## if the page only contains archive, get a random archived ID
+    def process_archive_names(self,df):
+        # get all non-archived ids
+        result = df.loc[df['archive'] == 'None']
+        # get an archived id for each archive that doesn't have an un-archived page 
+        only_archive = df.loc[(~df['title'].isin(result.loc[result['namespace'] == 1]['title'])) & df['namespace'] == 1].drop_duplicates('title')
+        # concat the 2 dfs
+        result = pd.concat([result,only_archive])
+        return result
+
     ## reduce edit csv to page level csv counting edits
     ## INCLUDES TIMEDELTA AND NUM_EDITORS
     def rev_size(self,v=False):
@@ -142,7 +153,7 @@ class Page_Edit_Counter(object):
         # create a dataframe w/out reverted edits
         no_revert_count_df = df.loc[(df['revert'] == False)]
         # create a "result" dataframe with only non-archived pages
-        result = df.loc[df['archive'] == 'None']
+        result = self.process_archive_names(df)
         # drop all duplicate IDs
         result = result[['page_id','title','namespace']].drop_duplicates(subset='page_id')
         # group df by namespace and title
@@ -151,8 +162,14 @@ class Page_Edit_Counter(object):
         # move namespace and title from index to column
         count_df = df.groupby(['namespace','title']).size().to_frame('len').reset_index()
         no_revert_count_df = no_revert_count_df.groupby(['namespace','title']).size().to_frame('no_revert_len').reset_index()
-        # merge the aggregated dfs with the result df by title and namespace
-        result = result.merge(count_df,on=['title','namespace']).merge(no_revert_count_df,on=['title','namespace'])
+        # merge the aggregated df (including reverts) with the result df by title and namespace
+        result = result.merge(count_df,on=['title','namespace'])
+        # merge the aggregated df (not including reverts) with the result df by title and namespace
+        # use outer join to account for articles that are all reverts
+        # fill n/a values with 0
+        result = result.merge(no_revert_count_df,on=['title','namespace'],how='outer')
+        # fill n/a values with 0
+        result[['no_revert_len']] = result[['no_revert_len']].fillna(value=0,axis=1)
         # calculate the age of a given page
         age = self.page_age(df)
         # calculate the number of editors that have contributed to a give page
@@ -333,7 +350,9 @@ class Robustness_Tester(Page_Edit_Counter):
         assert len(page_df) > 0
         assert len(page_df['page_id'].unique()) == len(page_df['page_id'])
         utils.log('passed page_id uniqueness test')
-        assert len(edit_df.loc[edit_df['archive'] == 'None']['page_id'].unique()) == len(page_df)
+        # get the number of talk titles that don't have un-archived talk titles
+        num_page_archives = len(edit_df.loc[(~edit_df['title'].isin(edit_df.loc[(edit_df['namespace'] == 1) & edit_df['archive'] == 'None']['title'])) & (edit_df ['namespace'] == 1)].drop_duplicates('title'))
+        assert len(edit_df.loc[edit_df['archive'] == 'None']['page_id'].unique()) == len(page_df) - num_page_archives
         utils.log('passed page_id test: same number of unique page_ids in both documents')
         title_counts = page_df['title'].value_counts().to_frame('values')
         assert len(title_counts.loc[title_counts['values'] > 2]) == 0
@@ -421,7 +440,7 @@ def main():
                         help='combine raw edit files before processing')
     parser.add_argument('--clean',action='store_true',
                         help='for debugging only (included in --counts). clean the english language version')
-    parser.add_argument('--test',
+    parser.add_argument('-t','--test',
                         nargs='+',
                         help='for debugging only. only run doc tests (counts,link,append) without processing')
     args = parser.parse_args()
