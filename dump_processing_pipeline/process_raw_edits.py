@@ -154,9 +154,9 @@ class Page_Edit_Counter(object):
         # merge the aggregated dfs with the result df by title and namespace
         result = result.merge(df,on=['title','namespace']).merge(no_revert_df,on=['title','namespace'])
         # calculate the age of a given page
-        age = self.page_age(result)
+        age = self.page_age(df)
         # calculate the number of editors that have contributed to a give page
-        editors = self.num_editors(result)
+        editors = self.num_editors(df)
         # merge the editor and age columns w/ the result df
         result = result.merge(age,on='page_id').merge(editors,on='page_id')
         # add language column
