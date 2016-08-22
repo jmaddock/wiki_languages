@@ -352,16 +352,11 @@ class Robustness_Tester(Page_Edit_Counter):
         assert len(page_df['page_id'].unique()) == len(page_df['page_id'])
         utils.log('passed page_id uniqueness test')
         # get the number of talk titles that don't have un-archived talk titles
-<<<<<<< HEAD
-        num_page_archives = len(edit_df.loc[(~edit_df['title'].isin(edit_df.loc[(edit_df['namespace'] == 1) & (edit_df['archive'] == 'None')]['title'])) & (edit_df['namespace'] == 1)].drop_duplicates('title'))
-        assert len(edit_df.loc[edit_df['archive'] == 'None']['page_id'].unique()) == len(page_df) - num_page_archives
-=======
         num_page_archives = len(edit_df.loc[(~edit_df['title'].isin(edit_df.loc[(edit_df['namespace'] == 1) & (edit_df['archive'] == 'None')]['title'])) & (edit_df ['namespace'] == 1)].drop_duplicates('title'))
         print(len(edit_df.loc[edit_df['archive'] == 'None']['page_id'].unique()))
         print(num_page_archives)
         print(len(page_df))
         assert len(edit_df.loc[edit_df['archive'] == 'None']['page_id'].unique()) == (len(page_df) - num_page_archives)
->>>>>>> 5c9ea6a397086ca81a3d12fd2832aaf46a000ec5
         utils.log('passed page_id test: same number of unique page_ids in both documents')
         title_counts = page_df['title'].value_counts().to_frame('values')
         assert len(title_counts.loc[title_counts['values'] > 2]) == 0
