@@ -2,8 +2,8 @@
 
 translations = {
     'archive':{
-        'en':'archive',
-        'de':'archivieren',
+        'en':'archive', # correct
+        'de':'archiv', # correct, reprocess
         'fr':'archiver',
         'es':'archivo',
         'ru':'архив',
@@ -25,9 +25,9 @@ translations = {
         'tr':'arşiv',
         'ca':'Arxiu',
         'fi':'arkisto',
-        'no':'arkiv',
-        'cs':'archiv',
-        'simple':'archive',
+        'no':'arkiv', # correct
+        'cs':'archiv', # correct
+        'simple':'archive', # correct
     },
     'talk':{
         'simple':'talk'

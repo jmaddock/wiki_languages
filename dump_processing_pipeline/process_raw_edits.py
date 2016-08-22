@@ -96,17 +96,20 @@ class Page_Edit_Counter(object):
         utils.log('dropped {0} ({1:.2f}%) bot edits'.format(num_bots,percent))
         df = df.loc[df['is_bot'] == False]
         return df
-    
+
     ## reduce edit csv to page level csv counting edits
     ## INCLUDES TIMEDELTA AND NUM_EDITORS
     def rev_size(self,v=False):
+        # check if bot file exists and if not raise OSError
         if self.no_bots:
             if not os.path.isfile(config.BOT_LIST):
                 utils.log('missing bot list file!')
                 raise OSError
         utils.log('creating %s edit counts' % self.wiki_name)
+        # construct data file path
         f_in_name = os.path.join(self.db_path,config.COMBINED_RAW_EDITS)
         utils.log('loading data from file %s' % f_in_name)
+        # if processing EN Wikipedia, automatically load w/ iterator to avoid memory errors
         if self.wiki_name == 'en':
             tp = pd.read_csv(f_in_name,
                              na_values={'title':'','user_text':''},
@@ -114,34 +117,55 @@ class Page_Edit_Counter(object):
                              dtype={'title': object,'author': object},
                              iterator=True,
                              chunksize=1000)
-            f_in = pd.concat(tp, ignore_index=True)
+            df = pd.concat(tp, ignore_index=True)
+        # if not EN Wikipedia, try loading w/out iterator, but fall back to iterator
         else:
             try:
-                f_in = pd.read_csv(f_in_name,
+                df = pd.read_csv(f_in_name,
                                    na_values={'title':'','user_text':''},
                                    keep_default_na=False,
                                    dtype={'title': object,'user_text':object})
             except MemoryError:
                 utils.log('file too large, importing with iterator...')
-                tp = pd.read_csv(f_in_name,na_values={'title':''},keep_default_na=False,dtype={'title': object},iterator=True,chunksize=1000)
-                f_in = pd.concat(tp, ignore_index=True)
+                tp = pd.read_csv(f_in_name,
+                                 na_values={'title':''},
+                                 keep_default_na=False,
+                                 dtype={'title': object},
+                                 iterator=True,
+                                 chunksize=1000)
+                df = pd.concat(tp, ignore_index=True)
+        # remove all edits made by registered bots
         if self.no_bots:
             utils.log('dropping bot edits')
-            f_in = self.flag_bots(f_in)
-            f_in = self.remove_bots(f_in)
-        nr = f_in.loc[(f_in['revert'] == False)]
-        df = f_in[['page_id','title','namespace']].drop_duplicates(subset='page_id').set_index('page_id',drop=False)
-        s = f_in['page_id'].value_counts().to_frame('len')
-        nrs = nr['page_id'].value_counts().to_frame('no_revert_len')
-        result = df.join(s).join(nrs)
-        result_path = os.path.join(self.db_path,config.EDIT_COUNTS)
-        columns = ['page_id','title','namespace','len','no_revert_len','num_editors','td','tds','lang']
-        age = self.page_age(f_in)
-        editors = self.num_editors(f_in)
+            df = self.flag_bots(f_in)
+            df = self.remove_bots(f_in)
+        # create a dataframe w/out reverted edits
+        no_revert_df = df.loc[(f_in['revert'] == False)]
+        # create a "result" dataframe with only non-archived pages
+        result = df.loc[df['archive'] == 'None']
+        # drop all duplicate IDs
+        result = result[['page_id','title','namespace']].drop_duplicates(subset='page_id')
+        # group df by namespace and title
+        # count occurrences of title
+        # convert to dataframe
+        # move namespace and title from index to column
+        df = df.groupby(['namespace','title']).size().to_frame('len').reset_index()
+        no_revert_df = no_revert_df.groupby(['namespace','title']).size().to_frame('no_revert_len').reset_index()
+        # merge the aggregated dfs with the result df by title and namespace
+        result = result.merge(df,on=['title','namespace']).merge(no_revert_df,on=['title','namespace'])
+        # calculate the age of a given page
+        age = self.page_age(result)
+        # calculate the number of editors that have contributed to a give page
+        editors = self.num_editors(result)
+        # merge the editor and age columns w/ the result df
         result = result.merge(age,on='page_id').merge(editors,on='page_id')
+        # add language column
         result['lang'] = self.wiki_name
+        # drop pages w/ single editors and single edits
         if self.drop1:
             result = self._drop1(result)
+        columns = ['page_id','title','namespace','len','no_revert_len','num_editors','td','tds','lang']
+        result_path = os.path.join(self.db_path,config.EDIT_COUNTS)
         result.to_csv(result_path,na_rep='NaN',columns=columns,encoding='utf-8')
         if v:
             print(result)
