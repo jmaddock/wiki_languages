@@ -103,7 +103,8 @@ class Page_Edit_Counter(object):
         # get all non-archived ids
         result = df.loc[df['archive'] == 'None']
         # get an archived id for each archive that doesn't have an un-archived page 
-        only_archive = df.loc[(~df['title'].isin(result.loc[result['namespace'] == 1]['title'])) & df['namespace'] == 1].drop_duplicates('title')
+        only_archive = df.loc[(~df['title'].isin(result.loc[result['namespace'] == 1]['title'])) & (df['namespace'] == 1)].drop_duplicates('title')
+        print(len(only_archive))
         # concat the 2 dfs
         result = pd.concat([result,only_archive])
         return result
@@ -351,8 +352,11 @@ class Robustness_Tester(Page_Edit_Counter):
         assert len(page_df['page_id'].unique()) == len(page_df['page_id'])
         utils.log('passed page_id uniqueness test')
         # get the number of talk titles that don't have un-archived talk titles
-        num_page_archives = len(edit_df.loc[(~edit_df['title'].isin(edit_df.loc[(edit_df['namespace'] == 1) & edit_df['archive'] == 'None']['title'])) & (edit_df ['namespace'] == 1)].drop_duplicates('title'))
-        assert len(edit_df.loc[edit_df['archive'] == 'None']['page_id'].unique()) == len(page_df) - num_page_archives
+        num_page_archives = len(edit_df.loc[(~edit_df['title'].isin(edit_df.loc[(edit_df['namespace'] == 1) & (edit_df['archive'] == 'None')]['title'])) & (edit_df ['namespace'] == 1)].drop_duplicates('title'))
+        print(len(edit_df.loc[edit_df['archive'] == 'None']['page_id'].unique()))
+        print(num_page_archives)
+        print(len(page_df))
+        assert len(edit_df.loc[edit_df['archive'] == 'None']['page_id'].unique()) == (len(page_df) - num_page_archives)
         utils.log('passed page_id test: same number of unique page_ids in both documents')
         title_counts = page_df['title'].value_counts().to_frame('values')
         assert len(title_counts.loc[title_counts['values'] > 2]) == 0
