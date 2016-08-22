@@ -140,7 +140,7 @@ class Page_Edit_Counter(object):
             df = self.flag_bots(df)
             df = self.remove_bots(df)
         # create a dataframe w/out reverted edits
-        no_revert_df = df.loc[(df['revert'] == False)]
+        no_revert_count_df = df.loc[(df['revert'] == False)]
         # create a "result" dataframe with only non-archived pages
         result = df.loc[df['archive'] == 'None']
         # drop all duplicate IDs
@@ -149,10 +149,10 @@ class Page_Edit_Counter(object):
         # count occurrences of title
         # convert to dataframe
         # move namespace and title from index to column
-        df = df.groupby(['namespace','title']).size().to_frame('len').reset_index()
-        no_revert_df = no_revert_df.groupby(['namespace','title']).size().to_frame('no_revert_len').reset_index()
+        count_df = df.groupby(['namespace','title']).size().to_frame('len').reset_index()
+        no_revert_count_df = no_revert_count_df.groupby(['namespace','title']).size().to_frame('no_revert_len').reset_index()
         # merge the aggregated dfs with the result df by title and namespace
-        result = result.merge(df,on=['title','namespace']).merge(no_revert_df,on=['title','namespace'])
+        result = result.merge(count_df,on=['title','namespace']).merge(no_revert_count_df,on=['title','namespace'])
         # calculate the age of a given page
         age = self.page_age(df)
         # calculate the number of editors that have contributed to a give page
