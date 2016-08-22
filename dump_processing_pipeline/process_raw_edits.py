@@ -137,10 +137,10 @@ class Page_Edit_Counter(object):
         # remove all edits made by registered bots
         if self.no_bots:
             utils.log('dropping bot edits')
-            df = self.flag_bots(f_in)
-            df = self.remove_bots(f_in)
+            df = self.flag_bots(df)
+            df = self.remove_bots(df)
         # create a dataframe w/out reverted edits
-        no_revert_df = df.loc[(f_in['revert'] == False)]
+        no_revert_df = df.loc[(df['revert'] == False)]
         # create a "result" dataframe with only non-archived pages
         result = df.loc[df['archive'] == 'None']
         # drop all duplicate IDs
