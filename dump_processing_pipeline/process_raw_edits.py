@@ -333,7 +333,7 @@ class Robustness_Tester(Page_Edit_Counter):
         assert len(page_df) > 0
         assert len(page_df['page_id'].unique()) == len(page_df['page_id'])
         utils.log('passed page_id uniqueness test')
-        assert len(edit_df['page_id'].unique()) == len(page_df)
+        assert len(edit_df.loc[edit_df['archive'] == 'None']['page_id'].unique()) == len(page_df)
         utils.log('passed page_id test: same number of unique page_ids in both documents')
         title_counts = page_df['title'].value_counts().to_frame('values')
         assert len(title_counts.loc[title_counts['values'] > 2]) == 0
@@ -421,6 +421,9 @@ def main():
                         help='combine raw edit files before processing')
     parser.add_argument('--clean',action='store_true',
                         help='for debugging only (included in --counts). clean the english language version')
+    parser.add_argument('--test',
+                        nargs='+',
+                        help='for debugging only. only run doc tests (counts,link,append) without processing')
     args = parser.parse_args()
     if args.job_script:
         job_script(args)
@@ -458,6 +461,13 @@ def main():
         if args.clean:
             clean_en = Clean_En()
             df = clean_en.clean()
+        if len(args.test) > 0:
+            if 'counts' in args.test:
+                t.page_test(edit_df_path,page_df_path)
+            if 'link' in args.test:
+                t.linked_test(edit_df_path,page_df_path,linked_df_path)
+            if 'append' in args.test:
+                t.merged_test(linked_df_path,ratio_df_path)
         
 if __name__ == "__main__":
     main()
