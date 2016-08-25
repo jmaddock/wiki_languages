@@ -103,7 +103,7 @@ class Page_Edit_Counter(object):
         # get all non-archived ids
         result = df.loc[df['archive'] == 'None']
         # get an archived id for each archive that doesn't have an un-archived page 
-        only_archive = get_archives_without_unarchived(df)
+        only_archive = self.get_archives_without_unarchived(df)
         print(len(only_archive))
         # concat the 2 dfs
         result = pd.concat([result,only_archive])
