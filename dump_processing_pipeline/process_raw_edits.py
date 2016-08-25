@@ -103,11 +103,21 @@ class Page_Edit_Counter(object):
         # get all non-archived ids
         result = df.loc[df['archive'] == 'None']
         # get an archived id for each archive that doesn't have an un-archived page 
-        only_archive = df.loc[(~df['title'].isin(result.loc[result['namespace'] == 1]['title'])) & (df['namespace'] == 1)].drop_duplicates('title')
+        only_archive = get_archives_without_unarchived(df)
         print(len(only_archive))
         # concat the 2 dfs
         result = pd.concat([result,only_archive])
         return result
+
+    def get_archives_without_unarchived(self,df):
+        # get all unarchived talk page titles
+        unarchived_talk_page_titles = df.loc[(df['namespace'] == 1) & (df['archive'] == 'None')]['title']
+        # get all pages with titles not in unarchived_talk_page_titles
+        archived_talk_pages_without_non_archives = df.loc[(~df['title'].isin(unarchived_talk_page_titles)) & (df ['namespace'] == 1)]
+        # remove duplicated titles (multiple archives)
+        archived_talk_pages_without_non_archives = archived_talk_pages_without_non_archives.drop_duplicates('title')
+        # get the number of pages
+        return archived_talk_pages_without_non_archives
 
     ## reduce edit csv to page level csv counting edits
     ## INCLUDES TIMEDELTA AND NUM_EDITORS
