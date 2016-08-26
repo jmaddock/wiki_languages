@@ -113,7 +113,7 @@ class Page_Edit_Counter(object):
         # get all unarchived talk page titles
         unarchived_talk_page_titles = df.loc[(df['namespace'] == 1) & (df['archive'] == 'None')]['title']
         # get all pages with titles not in unarchived_talk_page_titles
-        archived_talk_pages_without_non_archives = df.loc[(~df['title'].isin(unarchived_talk_page_titles)) & (df ['namespace'] == 1)]
+        archived_talk_pages_without_non_archives = df.loc[(~df['title'].isin(unarchived_talk_page_titles)) & (df['namespace'] == 1)]
         # remove duplicated titles (multiple archives)
         archived_talk_pages_without_non_archives = archived_talk_pages_without_non_archives.drop_duplicates('title')
         # get the number of pages
@@ -144,9 +144,9 @@ class Page_Edit_Counter(object):
         else:
             try:
                 df = pd.read_csv(f_in_name,
-                                   na_values={'title':'','user_text':''},
-                                   keep_default_na=False,
-                                   dtype={'title': object,'user_text':object})
+                                 na_values={'title':'','user_text':''},
+                                 keep_default_na=False,
+                                 dtype={'title': object,'user_text':object})
             except MemoryError:
                 utils.log('file too large, importing with iterator...')
                 tp = pd.read_csv(f_in_name,
@@ -351,9 +351,10 @@ class Robustness_Tester(Page_Edit_Counter):
             edit_df = self.flag_bots(edit_df)
             edit_df = self.remove_bots(edit_df)
         if self.drop1:
-            edit_counts = edit_df['page_id'].value_counts().to_frame('values')
-            edit_counts = edit_counts.loc[edit_counts['values'] > 1]
-            edit_df = edit_df.loc[edit_df['page_id'].isin(edit_counts.index.values)]
+            edit_counts = edit_df.groupby(['namespace','title']).size().to_frame('values').reset_index()
+            edit_counts_1 = edit_counts.loc[(edit_counts['values'] > 1) & (edit_counts['namespace'] == 1)]
+            edit_counts_0 = edit_counts.loc[(edit_counts['values'] > 1) & (edit_counts['namespace'] == 0)]
+            edit_df = edit_df.loc[((edit_df['title'].isin(edit_counts_1['title'])) & (edit_df['namespace'] == 1)) | ((edit_df['title'].isin(edit_counts_0['title'])) & (edit_df['namespace'] == 0))]
             editor_counts = edit_df.groupby('page_id').user_text.nunique().to_frame('values')
             editor_counts = editor_counts.loc[editor_counts['values'] > 1]
             edit_df = edit_df.loc[edit_df['page_id'].isin(editor_counts.index.values)]
