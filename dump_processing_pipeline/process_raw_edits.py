@@ -339,6 +339,7 @@ class Robustness_Tester(Page_Edit_Counter):
 
     def page_test(self,edit_df_path,page_df_path):
         utils.log('running basic document tests')
+        # read edit and page csvs
         edit_df = pd.read_csv(edit_df_path,
                               na_values={'title':'','user_text':''},
                               keep_default_na=False,
@@ -347,17 +348,22 @@ class Robustness_Tester(Page_Edit_Counter):
                               na_values={'title':'','user_text':''},
                               keep_default_na=False,
                               dtype={'title': object,'user_text':object})
+        # remove bots from dfs
         if self.no_bots:
             edit_df = self.flag_bots(edit_df)
             edit_df = self.remove_bots(edit_df)
+        # drop single edits/editors from dfs
         if self.drop1:
+            # group by namespace and title and find edit counts
             edit_counts = edit_df.groupby(['namespace','title']).size().to_frame('values').reset_index()
+            # remove counts that are less than 1, but maintain namespace split
             edit_counts_1 = edit_counts.loc[(edit_counts['values'] > 1) & (edit_counts['namespace'] == 1)]
             edit_counts_0 = edit_counts.loc[(edit_counts['values'] > 1) & (edit_counts['namespace'] == 0)]
             edit_df = edit_df.loc[((edit_df['title'].isin(edit_counts_1['title'])) & (edit_df['namespace'] == 1)) | ((edit_df['title'].isin(edit_counts_0['title'])) & (edit_df['namespace'] == 0))]
-            editor_counts = edit_df.groupby('page_id').user_text.nunique().to_frame('values')
-            editor_counts = editor_counts.loc[editor_counts['values'] > 1]
-            edit_df = edit_df.loc[edit_df['page_id'].isin(editor_counts.index.values)]
+            editor_counts = edit_df.groupby(['namespace','title']).user_text.nunique().to_frame('values')
+            editor_counts_1 = edit_counts.loc[(edit_counts['values'] > 1) & (edit_counts['namespace'] == 1)]
+            editor_counts_0 = edit_counts.loc[(edit_counts['values'] > 1) & (edit_counts['namespace'] == 0)]
+            edit_df = edit_df.loc[((edit_df['title'].isin(editor_counts_1['title'])) & (edit_df['namespace'] == 1)) | ((edit_df['title'].isin(editor_counts_0['title'])) & (edit_df['namespace'] == 0))]
         assert len(edit_df) > 0
         assert len(page_df) > 0
         assert len(page_df['page_id'].unique()) == len(page_df['page_id'])
