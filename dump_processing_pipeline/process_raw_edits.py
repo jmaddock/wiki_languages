@@ -360,9 +360,9 @@ class Robustness_Tester(Page_Edit_Counter):
             edit_counts_1 = edit_counts.loc[(edit_counts['values'] > 1) & (edit_counts['namespace'] == 1)]
             edit_counts_0 = edit_counts.loc[(edit_counts['values'] > 1) & (edit_counts['namespace'] == 0)]
             edit_df = edit_df.loc[((edit_df['title'].isin(edit_counts_1['title'])) & (edit_df['namespace'] == 1)) | ((edit_df['title'].isin(edit_counts_0['title'])) & (edit_df['namespace'] == 0))]
-            editor_counts = edit_df.groupby(['namespace','title']).user_text.nunique().to_frame('values')
-            editor_counts_1 = edit_counts.loc[(edit_counts['values'] > 1) & (edit_counts['namespace'] == 1)]
-            editor_counts_0 = edit_counts.loc[(edit_counts['values'] > 1) & (edit_counts['namespace'] == 0)]
+            editor_counts = edit_df.groupby(['namespace','title']).user_text.nunique().to_frame('values').reset_index()
+            editor_counts_1 = editor_counts.loc[(editor_counts['values'] > 1) & (editor_counts['namespace'] == 1)]
+            editor_counts_0 = editor_counts.loc[(editor_counts['values'] > 1) & (editor_counts['namespace'] == 0)]
             edit_df = edit_df.loc[((edit_df['title'].isin(editor_counts_1['title'])) & (edit_df['namespace'] == 1)) | ((edit_df['title'].isin(editor_counts_0['title'])) & (edit_df['namespace'] == 0))]
         assert len(edit_df) > 0
         assert len(page_df) > 0
