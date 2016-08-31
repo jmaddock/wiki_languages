@@ -93,13 +93,15 @@ class CSV_Creator(object):
         d['page_id'] = page.id
         # get the namespace (0 or 1)
         d['namespace'] = page.namespace
+        # replace quote chars with an escape character, remove trailing spaces, and convert to lowercase
+        stripped_title = stripped_title.replace('"',config.QUOTE_ESCAPE_CHAR).strip()#.lower()
+        # capture the full title w/ escaped quotes
+        d['full_title'] = stripped_title
         # if the page is a talk page, strip "Talk:" from the title
         if page.namespace == 1:
             stripped_title = page.title.split(':',1)[-1]
         else:
             stripped_title = page.title
-        # replace quote chars with an escape character, remove trailing spaces, and convert to lowercase
-        stripped_title = stripped_title.replace('"',config.QUOTE_ESCAPE_CHAR).strip()#.lower()
         # remove trailing "/archive" from the title
         # get the archive number or title (if any)
         if len(stripped_title.split('/{0}'.format(translations.translations['archive'][self.lang]))) > 1 and page.namespace == 1:
@@ -125,14 +127,15 @@ class CSV_Creator(object):
             r['revert'] = rt.is_revert(rev.sha1)
             # get the datetime of the edit
             r['ts'] = str(datetime.datetime.fromtimestamp(rev.timestamp))
-            result = '%s,%s,"%s","%s","%s",%s,"%s","%s"\n' % (d['page_id'],
-                                                              d['namespace'],
-                                                              d['title'],
-                                                              d['archive'],
-                                                              r['user_text'],
-                                                              r['user_id'],
-                                                              r['revert'],
-                                                              r['ts'])
+            result = '%s,%s,"%s","%s","%s","%s",%s,"%s","%s"\n' % (d['page_id'],
+                                                                   d['namespace'],
+                                                                   d['title'],
+                                                                   d['full_title'],
+                                                                   d['archive'],
+                                                                   r['user_text'],
+                                                                   r['user_id'],
+                                                                   r['revert'],
+                                                                   r['ts'])
             self.edit_count += 1
             db_file.write(result)
 
