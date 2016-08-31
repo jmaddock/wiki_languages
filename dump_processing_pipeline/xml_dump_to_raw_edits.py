@@ -10,6 +10,7 @@ import codecs
 import argparse
 import config
 import translations
+import uuid
 
 SCRIPT_DIR = os.path.abspath(__file__)
 
@@ -59,6 +60,7 @@ class CSV_Creator(object):
         self.edit_count = 0
         self.page_count = 0
         self.db_path = config.ROOT_PROCESSED_DIR
+        self.uuid_list = pd.DataFrame()
 
     def create_db_dir(self):
         utils.log(self.db_path+self.lang)
@@ -83,6 +85,19 @@ class CSV_Creator(object):
         utils.log('processed %s pages and %s edits' % (self.page_count,self.edit_count))
         if not debug:
             self.dh.remove_dump()
+
+    def generate_uuid(self,title,namespace):
+        query = self.uuid_list.loc[(self.uuid_list['namespace'] == namespace) & (self.uuid_list['title'] == title)] 
+        if len(query) == 1:
+            uuid = query['uuid'].values[0]
+        else:
+            uuid = uuid.uuid1()
+            self.uuid_list = self.uuid_list.append(pd.DataFrame([{
+                'title':title,
+                'namespace':namespace,
+                'uuid':uuid
+            }]))
+        return uuid
 
     def create_csv_document(self,page,db_file):
         # create a list to track already used edit hashes
@@ -113,6 +128,7 @@ class CSV_Creator(object):
         else:
             d['archive'] = None
             d['title'] = stripped_title
+        d['uuid'] = self.generate_uuid(title=d['title'],namespace=d['namespace'])
         self.page_count += 1
         for rev in page:
             r = {}
@@ -127,15 +143,18 @@ class CSV_Creator(object):
             r['revert'] = rt.is_revert(rev.sha1)
             # get the datetime of the edit
             r['ts'] = str(datetime.datetime.fromtimestamp(rev.timestamp))
-            result = '%s,%s,"%s","%s","%s","%s",%s,"%s","%s"\n' % (d['page_id'],
-                                                                   d['namespace'],
-                                                                   d['title'],
-                                                                   d['full_title'],
-                                                                   d['archive'],
-                                                                   r['user_text'],
-                                                                   r['user_id'],
-                                                                   r['revert'],
-                                                                   r['ts'])
+            result = '"%s",%s,%s,"%s","%s","%s","%s",%s,"%s","%s"\n' % (
+                d['uuid'],
+                d['page_id'],
+                d['namespace'],
+                d['title'],
+                d['full_title'],
+                d['archive'],
+                r['user_text'],
+                r['user_id'],
+                r['revert'],
+                r['ts']
+            )
             self.edit_count += 1
             db_file.write(result)
 

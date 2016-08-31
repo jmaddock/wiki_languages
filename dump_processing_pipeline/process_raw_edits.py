@@ -472,6 +472,7 @@ def main():
                         help='for debugging only (included in --counts). clean the english language version')
     parser.add_argument('-t','--test',
                         nargs='+',
+                        choices=['counts','link','append'],
                         help='for debugging only. only run doc tests (counts,link,append) without processing')
     args = parser.parse_args()
     if args.job_script:
