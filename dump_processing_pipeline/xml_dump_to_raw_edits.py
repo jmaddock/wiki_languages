@@ -60,7 +60,7 @@ class CSV_Creator(object):
         self.edit_count = 0
         self.page_count = 0
         self.db_path = config.ROOT_PROCESSED_DIR
-        self.uuid_list = pd.DataFrame()
+        self.uuid_list = pd.DataFrame({'title':[],'namespace':[],'uuid':[]})
 
     def create_db_dir(self):
         utils.log(self.db_path+self.lang)
@@ -87,15 +87,18 @@ class CSV_Creator(object):
             self.dh.remove_dump()
 
     def generate_uuid(self,title,namespace):
-        query = self.uuid_list.loc[(self.uuid_list['namespace'] == namespace) & (self.uuid_list['title'] == title)] 
-        if len(query) == 1:
-            uuid = query['uuid'].values[0]
+        if len(self.uuid_list) > 0:
+            query = self.uuid_list.loc[(self.uuid_list['namespace'] == namespace) & (self.uuid_list['title'] == title)]
         else:
-            uuid = uuid.uuid1()
+            query = []
+        if len(query) == 1:
+            page_uuid = query['uuid'].values[0]
+        else:
+            page_uuid = uuid.uuid1()
             self.uuid_list = self.uuid_list.append(pd.DataFrame([{
                 'title':title,
                 'namespace':namespace,
-                'uuid':uuid
+                'uuid':page_uuid
             }]))
         return uuid
 
@@ -109,14 +112,12 @@ class CSV_Creator(object):
         # get the namespace (0 or 1)
         d['namespace'] = page.namespace
         # replace quote chars with an escape character, remove trailing spaces, and convert to lowercase
-        stripped_title = stripped_title.replace('"',config.QUOTE_ESCAPE_CHAR).strip()#.lower()
+        stripped_title = page.title.replace('"',config.QUOTE_ESCAPE_CHAR).strip()#.lower()
         # capture the full title w/ escaped quotes
         d['full_title'] = stripped_title
         # if the page is a talk page, strip "Talk:" from the title
         if page.namespace == 1:
-            stripped_title = page.title.split(':',1)[-1]
-        else:
-            stripped_title = page.title
+            stripped_title = stripped_title.split(':',1)[-1]
         # remove trailing "/archive" from the title
         # get the archive number or title (if any)
         if len(stripped_title.split('/{0}'.format(translations.translations['archive'][self.lang]))) > 1 and page.namespace == 1:
@@ -165,12 +166,6 @@ class CSV_Creator(object):
         utils.log('passed edit count test: iteration count and document line count match')
         assert len(df['page_id'].unique()) == self.page_count
         utils.log('passed page count test: iteration count and unique page_id match')
-        #print(len(df.loc[df['namespace'] == 0]['title'].unique()),len(df.loc[df['namespace'] == 0]['page_id'].unique()))
-        #titles = df.loc[df['namespace'] == 0].drop_duplicates('title')
-        #ids = df.loc[df['namespace'] == 0].drop_duplicates('page_id')
-        #print((ids.loc[~ids['page_id'].isin(titles['page_id'])]))
-        #print(df.loc[df['page_id'] == 41])
-        #print(df.loc[df['title'].str.contains('American')])
         assert len(df.loc[df['namespace'] == 0]['title'].unique()) == len(df.loc[df['namespace'] == 0]['page_id'].unique())
         assert len(df.loc[(df['namespace'] == 1) & (df['archive'] == 'None')]['title'].unique()) == len(df.loc[(df['namespace'] == 1) & (df['archive'] == 'None')]['page_id'].unique())
         utils.log('passed title uniqueness test: equal number of unique titles and page_ids')

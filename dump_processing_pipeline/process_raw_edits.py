@@ -511,7 +511,7 @@ def main():
         if args.clean:
             clean_en = Clean_En()
             df = clean_en.clean()
-        if len(args.test) > 0:
+        if args.test:
             if 'counts' in args.test:
                 t.page_test(edit_df_path,page_df_path)
             if 'link' in args.test:
