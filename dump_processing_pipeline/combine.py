@@ -138,19 +138,24 @@ def main():
     else:
         if args.base_dir:
             base_dir = args.base_dir
-        elif args.lang:
-            base_dir = os.path.join(config.ROOT_PROCESSED_DIR,args.lang)
         else:
             base_dir = os.path.join(config.ROOT_PROCESSED_DIR)
 
         if args.dumps:
-            c = Combine_Dumps(args.files,args.outfile,base_dir,args.lang)
-        elif args.edit_counts:
-            c = Combine_Edit_Counts(base_dir,args.outfile,args.ratio,args.debug,args.num)
-        elif args.ratio:
-            c = Combine_Edit_Counts(base_dir,args.outfile,args.ratio,args.debug,args.num)
+            c = Combine_Dumps(files=args.files,
+                              f_out=args.outfile,
+                              base_dir=base_dir,
+                              lang=args.lang)
+        elif args.edit_counts or args.ratio:
+            c = Combine_Edit_Counts(base_dir=base_dir,
+                                    f_out=args.outfile,
+                                    ratio=args.ratio,
+                                    debug=args.debug,
+                                    n=args.num)
         elif args.stats:
-            c = Combine_Stats(base_dir,args.outfile,args.drop1)
+            c = Combine_Stats(base_dir=base_dir,
+                              f_out=args.outfile,
+                              drop1=args.drop1)
         c.combine()
 
 if __name__ == "__main__":
