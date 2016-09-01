@@ -387,8 +387,8 @@ class Robustness_Tester(Page_Edit_Counter):
         title_counts = page_df['title'].value_counts().to_frame('values')
         assert len(title_counts.loc[title_counts['values'] > 2]) == 0
         utils.log('passed title uniqueness test: num titles <= 2')
-        assert len(page_df['title'].unique()) == len(edit_df['title'].unique())
-        utils.log('passed title uniqueness test: both documents have same number of unique titles')
+        #assert len(page_df['title'].unique()) == len(edit_df['title'].unique())
+        #utils.log('passed title uniqueness test: both documents have same number of unique titles')
         assert len(page_df.loc[(page_df['namespace'] < 0) & (page_df['namespace'] > 1)]) == 0
         utils.log('passed namespace test: namespaces are 0 or 1')
         #assert page_df['len'].sum() == len(edit_df)
