@@ -119,19 +119,39 @@ def job_script(args):
 ## TODO: create auto file name parser
 def main():
     parser = argparse.ArgumentParser(description='process wiki data')
-    parser.add_argument('-b','--base_dir')
-    parser.add_argument('-l','--lang')
-    parser.add_argument('-o','--outfile')
-    parser.add_argument('-n','--num')
-    parser.add_argument('--dumps',action='store_true')
-    parser.add_argument('--edit_counts',action='store_true')
-    parser.add_argument('--linked',action='store_true')
-    parser.add_argument('--ratio',action='store_true') 
-    parser.add_argument('--stats',action='store_true')
-    parser.add_argument('--drop1',action='store_true')
-    parser.add_argument('--debug',action='store_true')
-    parser.add_argument('-f','--files',nargs='*')
-    parser.add_argument('-j','--job_script')
+    parser.add_argument('-b','--base_dir',
+                        help='specify a base directory that contains all files or language directories.  otherwise use config file')
+    parser.add_argument('-l','--lang',
+                        help='use with --dumps fla.  the language for combining files.')
+    parser.add_argument('-o','--outfile',
+                        help='output file path/name')
+    parser.add_argument('-n','--num',
+                        help='DEPRECIATED')
+    parser.add_argument('--dumps',action='store_true',
+                        help='combine raw_edits_*.csv files.  use between xml_dump_to_raw_edits.py and process_raw_edits.py')
+    parser.add_argument('--edit_counts',
+                        action='store_true',
+                        help='combine config.edit_counts (edit_counts.csv) files.')
+    parser.add_argument('--linked',
+                        action='store_true',
+                        help='combine config.edit_counts (linked_edit_counts.csv) files.')
+    parser.add_argument('--ratio',
+                        action='store_true',
+                        help='combine final config.merged_edit_ratios (final processing step)') 
+    parser.add_argument('--stats',
+                        action='store_true',
+                        help='DEPRECIATED')
+    parser.add_argument('--drop1',
+                        action='store_true',
+                        help='DEPRECIATED')
+    parser.add_argument('--debug',
+                        action='store_true',
+                        help='print file list without creating combined df.')
+    parser.add_argument('-f','--files',
+                        nargs='*',
+                        help='specify a list of files to combine')
+    parser.add_argument('-j','--job_script',
+                        help='create a job script for hyak (use with --dumps flag)')
     args = parser.parse_args()
     if args.job_script:
         job_script(args)
