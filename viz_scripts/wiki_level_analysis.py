@@ -10,7 +10,7 @@ import utils
 
 def get_wiki_size(infile,outfile=None):
     df = pd.read_csv(infile,na_values={'title':''},keep_default_na=False,dtype={'title': object})
-    df = df.groupby('lang').page_id.nunique().to_frame('order_by')
+    df = df.groupby('lang').page_id_1.nunique().to_frame('order_by')
     df = df.reset_index(level=0)
     df = df.rename(columns={'index':'lang'})
     if outfile:
@@ -18,10 +18,11 @@ def get_wiki_size(infile,outfile=None):
     return df
 
 def get_wiki_age(outfile=None):
-    langs = [name for name in os.listdir(config.ROOT_PROCESSED_DIR) if (os.path.isdir(os.path.join(config.ROOT_PROCESSED_DIR,name)) and 'combined' not in name)] #and 'simple' not in name)]
+    langs = [name for name in os.listdir(config.ROOT_PROCESSED_DIR) if (os.path.isdir(os.path.join(config.ROOT_PROCESSED_DIR,name)) and 'combined' not in name and 'simple' not in name)]
     result = pd.DataFrame({'lang':[],'order_by':[]})
     for l in langs:
         infile = os.path.join(config.ROOT_PROCESSED_DIR,l,config.COMBINED_RAW_EDITS)
+        print(infile)
         try:
             df = utils.read_wiki_edits_file(infile,l)
         except OSError:
@@ -38,9 +39,15 @@ def get_wiki_age(outfile=None):
         
 def main():
     parser = argparse.ArgumentParser(description='process wiki data')
-    parser.add_argument('-i','--infile')
-    parser.add_argument('-o','--outfile')
-    parser.add_argument('-a','--analysis_type')
+    parser.add_argument('-i','--infile',
+                        help='input .csv path of combined edit counts.  use with --analysis_type = size')
+    parser.add_argument('-o','--outfile',
+                        required=True,
+                        help='output .csv path')
+    parser.add_argument('-a','--analysis_type',
+                        required=True,
+                        choices=['size','age'],
+                        help='get wiki age or wiki size')
     args = parser.parse_args()
     if args.analysis_type == 'size':
         get_wiki_size(args.infile,args.outfile)
