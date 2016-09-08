@@ -21,13 +21,13 @@ def graph_coefs(infile,coef_lables,group_by):
     df = df.rename(columns={'index':'vars'})
     df = df.loc[df['vars'].str[-5:] == 'lang2']
     df = df.merge(labels,on='b')
+    df = df.rename(columns={'vars_y':'lang'})
     df = _group_by(df,'b',group_by)
     ul = df['ul'].subtract(df['b']).values
     ll = df['b'].subtract(df['ll']).values
     errors = [ll,ul]
-    df = df.rename(columns={'vars_y':'vars'})
     title = 'Language Coefficients that Predict Edits to Talk Pages'
-    ax = df.plot(x='vars',
+    ax = df.plot(x='lang',
                  y='b',
                  yerr=errors,
                  kind='bar',
