@@ -49,6 +49,7 @@ class ML_WP_Population_Analyzer(object):
         # find the variance for each language
         result = result.merge(self._get_var(),on='independent_variable')
         result = result.rename(columns=self.variable_names)
+        print(result)
         self.result = result
         return result
 
