@@ -10,12 +10,13 @@ class ML_WP_Population_Analyzer(object):
 
     def __init__(self,infile,outfile=None,time_variable='years'):
         # raw dataframe
-        self.df = self._transform_page_age(pd.read_csv(
+        df = pd.read_csv(
             infile,
             na_values={'title':''},
             keep_default_na=False,
-            dtype={'title': object})
+            dtype={'title': object}
         )
+        self.df = self._transform_page_age(df,time_variable)
         self.independent_vars = [
             'len_1',
             'len_0',
