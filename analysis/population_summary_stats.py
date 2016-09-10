@@ -10,10 +10,12 @@ class ML_WP_Population_Analyzer(object):
 
     def __init__(self,infile,outfile=None):
         # raw dataframe
-        self.df = pd.read_csv(infile,
-                              na_values={'title':''},
-                              keep_default_na=False,
-                              dtype={'title': object})
+        self.df = self._transform_page_age(pd.read_csv(
+            infile,
+            na_values={'title':''},
+            keep_default_na=False,
+            dtype={'title': object})
+        )
         self.independent_vars = [
             'len_1',
             'len_0',
@@ -34,6 +36,13 @@ class ML_WP_Population_Analyzer(object):
         self.result = None
         # path to write .csv of results
         self.outfile = outfile
+
+    def _transform_page_age(self,df,time_variable):
+        if time_variable == 'years':
+            divide_by = 60*60*24*365
+            df['tds_0'] = df['tds_0'].divide(divide_by)
+            df['tds_1'] = df['tds_1'].divide(divide_by)
+        return df
         
     def generate_stats(self):
         # construct the "index" from unique languages
@@ -98,6 +107,10 @@ def main():
     parser.add_argument('-o','--outfile',
                         default='default',
                         help='output file path for results')
+    parser.add_argument('-t','--time_variable',
+                        choices=['seconds','years'],
+                        default='years',
+                        help='the time increment to use for page age')
     args = parser.parse_args()
     a = ML_WP_Population_Analyzer(infile=args.infile,
                                   outfile=args.outfile)
