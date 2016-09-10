@@ -44,6 +44,11 @@ class ML_WP_Population_Analyzer(object):
             df['tds_0'] = df['tds_0'].divide(divide_by)
             df['tds_1'] = df['tds_1'].divide(divide_by)
         return df
+
+    def _format_df(self,df):
+        df.loc[self.df['independent_variable'] == 'talk_age']['total'] = 'N/A'
+        df.loc[self.df['independent_variable'] == 'page_age']['total'] = 'N/A'
+        return df
         
     def generate_stats(self):
         # construct the "index" from unique languages
@@ -58,6 +63,7 @@ class ML_WP_Population_Analyzer(object):
         result = result.merge(self._get_std(),on='independent_variable')
         # find the variance for each language
         result = result.merge(self._get_var(),on='independent_variable')
+        result = self._format_df(result)
         result = result.replace(to_replace={'independent_variable':self.variable_names})
         print(result)
         self.result = result
@@ -65,6 +71,7 @@ class ML_WP_Population_Analyzer(object):
 
     def write_csv(self):
         if self.outfile:
+            pd.set_eng_float_format(accuracy=3, use_eng_prefix=True)
             self.result.to_csv(self.outfile,encoding='utf-8',index=False)
         else:
             utils.log('No outfile specified!')
