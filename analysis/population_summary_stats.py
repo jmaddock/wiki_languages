@@ -8,7 +8,7 @@ import utils
 
 class ML_WP_Population_Analyzer(object):
 
-    def __init__(self,infile,outfile=None):
+    def __init__(self,infile,outfile=None,time_variable='years'):
         # raw dataframe
         self.df = self._transform_page_age(pd.read_csv(
             infile,
@@ -113,7 +113,8 @@ def main():
                         help='the time increment to use for page age')
     args = parser.parse_args()
     a = ML_WP_Population_Analyzer(infile=args.infile,
-                                  outfile=args.outfile)
+                                  outfile=args.outfile,
+                                  time_variable=args.time_variable)
     a.generate_stats()
     a.write_csv()
 
