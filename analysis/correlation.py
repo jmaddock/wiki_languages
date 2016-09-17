@@ -49,9 +49,10 @@ class ML_WP_Population_Analyzer(object):
         return df
         
     def generate_correlation_table(self):
-        df = self.df[self.independent_vars]
-        df = df.rename(columns=self.variable_names)
-        result = df.corr()
+        result = self.df[self.independent_vars]
+        result = result.rename(columns=self.variable_names)
+        result = result.corr()
+        result = result.reset_index().rename({'index':''})
         self.result = result
         return result
 
