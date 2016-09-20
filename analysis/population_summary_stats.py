@@ -26,12 +26,12 @@ class ML_WP_Population_Analyzer(object):
             'num_editors_0',
         ]
         self.variable_names = {
-            'len_1':'num_talk_edits',
-            'len_0':'num_article_edits',
+            'len_1':'talk_edits',
+            'len_0':'article_edits',
             'tds_1':'talk_age',
             'tds_0':'article_age',
-            'num_editors_1':'unique_talk_authors',
-            'num_editors_0':'unique_article_authors',
+            'num_editors_1':'talk_authors',
+            'num_editors_0':'article_authors',
         }
         # dataframe of basic stats
         self.result = None
