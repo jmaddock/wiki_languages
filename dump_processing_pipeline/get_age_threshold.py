@@ -9,7 +9,8 @@ import config
 
 def get_last_date(infile_name):
     df = utils.read_wiki_edits_file(infile_name)
-    last_date = df.ix[df['tds'].idxmax()]
+    df['ts'] = pd.to_datetime(df['ts'],format="%Y-%m-%d %H:%M:%S")
+    last_date = df.ix[df['ts'].idxmax()]
     print(last_date)
     return last_date
 
@@ -29,7 +30,7 @@ def main():
     for infile in infile_list:
         utils.log('processing {0}'.format(infile))
         df = df.append(get_last_date(infile))
-    df.sort_values(by='tds',ascending=True)
+    df.sort_values(by='ts',ascending=True)
     print(df)
     df.to_csv(args.outfile,index=False)
 
