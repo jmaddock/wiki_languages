@@ -15,7 +15,7 @@ def get_last_date(infile_name):
 
 def get_lang_dirs_from_config():
     lang_list = [name for name in os.listdir(config.ROOT_PROCESSED_DIR) if (os.path.isdir(os.path.join(config.ROOT_PROCESSED_DIR,name)) and 'combined' not in name)]
-    file_list = [os.path.join(config.ROOT_PROCESSED_DIR,lang,config.EDIT_COUNTS) for lang in lang_list]
+    file_list = [os.path.join(config.ROOT_PROCESSED_DIR,lang,config.COMBINED_RAW_EDITS) for lang in lang_list]
     return file_list
 
 def main():
