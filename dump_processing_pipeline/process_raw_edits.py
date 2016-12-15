@@ -454,6 +454,8 @@ def job_script(args):
             out = out + ' --append'
         if args.link:
             out = out + ' --link'
+        if args.date_threshold:
+            out = out + ' --date_threshold {0}'.format(args.date_threshold)
         out = out + '\n'
         print(out)
         f.write(out)
