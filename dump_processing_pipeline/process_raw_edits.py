@@ -18,7 +18,7 @@ import combine
 SCRIPT_DIR = os.path.abspath(__file__)
 
 class Page_Edit_Counter(object):
-    def __init__(self,wiki_name,db_path=None,drop1=False,no_bots=False):
+    def __init__(self,wiki_name,db_path=None,drop1=False,no_bots=False,date_threshold=None):
         utils.log('creating importer...')
         self.wiki_name = wiki_name
         if not db_path:
@@ -28,6 +28,10 @@ class Page_Edit_Counter(object):
         self.create_db_dir()
         self.drop1 = drop1
         self.no_bots = no_bots
+        if date_threshold:
+            self.date_threshold = datetime.datetime.strptime(date_threshold,'%Y-%m-%d %H:%M:%S')
+        else:
+            self.date_threshold = None
 
     def create_db_dir(self):
         if not os.path.exists(self.db_path):
@@ -97,6 +101,13 @@ class Page_Edit_Counter(object):
         df = df.loc[df['is_bot'] == False]
         return df
 
+    def threshold_by_date(self,df):
+        # convert ts column to datetime
+        df['ts'] = pd.to_datetime(df['ts'],format="%Y-%m-%d %H:%M:%S")
+        # get all edits earlier than date_threshold
+        df = df.loc[df['ts'] <= self.date_threshold]
+        return df
+
     ## remove all rows containing an archive to get only active page ids
     ## if the page only contains archive, get a random archived ID
     def process_archive_names(self,df):
@@ -161,6 +172,9 @@ class Page_Edit_Counter(object):
             utils.log('dropping bot edits')
             df = self.flag_bots(df)
             df = self.remove_bots(df)
+        if self.date_threshold:
+            utils.log('applying date threshold')
+            df = self.threshold_by_date(df)
         # create a dataframe w/out reverted edits
         no_revert_count_df = df.loc[(df['revert'] == False)]
         # create a "result" dataframe with only non-archived pages
@@ -440,6 +454,8 @@ def job_script(args):
             out = out + ' --append'
         if args.link:
             out = out + ' --link'
+        if args.date_threshold:
+            out = out + ' --date_threshold "{0}"'.format(args.date_threshold)
         out = out + '\n'
         print(out)
         f.write(out)
@@ -454,6 +470,8 @@ def main():
                         help='base dir containing language directories if not using config file')
     parser.add_argument('-j','--job_script',
                         help='generate a job script to the specified output path/file')
+    parser.add_argument('--date_threshold',
+                        help='only include edits before a set date.  use format Y-m-d H:M:S (e.g. 2015-10-03 07:23:40)')
     parser.add_argument('--drop1',action='store_true',
                         help='drop all articles with single edits and single editors')
     parser.add_argument('--no_bots',action='store_true',
@@ -475,10 +493,10 @@ def main():
         job_script(args)
     else:
         if args.base_dir:
-            c = Page_Edit_Counter(args.lang,args.base_dir,drop1=args.drop1,no_bots=args.no_bots)
+            c = Page_Edit_Counter(args.lang,args.base_dir,drop1=args.drop1,no_bots=args.no_bots,date_threshold=args.date_threshold)
         else:
-            c = Page_Edit_Counter(args.lang,drop1=args.drop1,no_bots=args.no_bots)
-        t = Robustness_Tester(args.drop1,args.lang,args.no_bots)
+            c = Page_Edit_Counter(args.lang,drop1=args.drop1,no_bots=args.no_bots,date_threshold=args.date_threshold)
+        
         df = None
         edit_df_path = os.path.join(config.ROOT_PROCESSED_DIR,args.lang,config.COMBINED_RAW_EDITS)
         page_df_path = os.path.join(config.ROOT_PROCESSED_DIR,args.lang,config.EDIT_COUNTS)
@@ -490,20 +508,21 @@ def main():
             if args.lang == 'en':
                 clean_en = Clean_En(df)
                 df = clean_en.clean()
-            else:
-                t.page_test(edit_df_path,page_df_path)
+            #else: 
+                #t.page_test(edit_df_path,page_df_path)
         if args.link:
             df = c.link_documents(df)
-            t.linked_test(edit_df_path,page_df_path,linked_df_path)
+            #t.linked_test(edit_df_path,page_df_path,linked_df_path)
         if args.append:
             #df = c.append_article_to_talk(df)
             #t.merged_test(linked_df_path,merged_df_path)
             df = c.edit_ratios(df)
-            t.merged_test(linked_df_path,ratio_df_path)
+            #t.merged_test(linked_df_path,ratio_df_path)
         if args.clean:
             clean_en = Clean_En()
             df = clean_en.clean()
         if args.test:
+            t = Robustness_Tester(args.drop1,args.lang,args.no_bots)
             if 'counts' in args.test:
                 t.page_test(edit_df_path,page_df_path)
             if 'link' in args.test:

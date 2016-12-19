@@ -26,13 +26,11 @@ def graph_coefs(infile,coef_lables,group_by):
     ul = df['ul'].subtract(df['b']).values
     ll = df['b'].subtract(df['ll']).values
     errors = [ll,ul]
-    title = 'Language Coefficients that Predict Edits to Talk Pages'
     ax = df.plot(x='lang',
                  y='b',
                  yerr=errors,
-                 kind='bar',
-                 legend=False,
-                 title=title)
+                 kind='geom_point',
+                 legend=False,)
     ax.set_xlabel("Coefficient Value")
     ax.set_ylabel("Language")
     fig = ax.get_figure()
@@ -50,7 +48,7 @@ def graph_margins(infile,coef_type,group_by=None):
     if coef_type == 'percent':
         y_column = '%'
         title = 'Percent Increase in Talk Page Edits Predicted By Language'
-        ylabel = 'Percent Increase Predicted By Language'
+        ylabel = 'Percent Increase'
     elif coef_type == 'factor':
         y_column = 'e^b'
         title = 'Factor Increase in Talk Page Edits Predicted By Language'
@@ -61,7 +59,8 @@ def graph_margins(infile,coef_type,group_by=None):
                  y=y_column,
                  kind='bar',
                  legend=False,
-                 title=title)
+                 title=None,
+                 figsize=(7,3))
     ax.set_ylabel(ylabel)
     ax.set_xlabel("Language")
     fig = ax.get_figure()
