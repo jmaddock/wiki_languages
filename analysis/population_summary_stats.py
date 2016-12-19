@@ -26,12 +26,12 @@ class ML_WP_Population_Analyzer(object):
             'num_editors_0',
         ]
         self.variable_names = {
-            'len_1':'num_talk_edits',
-            'len_0':'num_article_edits',
+            'len_1':'talk_edits',
+            'len_0':'article_edits',
             'tds_1':'talk_age',
             'tds_0':'article_age',
-            'num_editors_1':'unique_talk_authors',
-            'num_editors_0':'unique_article_authors',
+            'num_editors_1':'talk_authors',
+            'num_editors_0':'article_authors',
         }
         # dataframe of basic stats
         self.result = None
@@ -43,11 +43,6 @@ class ML_WP_Population_Analyzer(object):
             divide_by = 60*60*24*365
             df['tds_0'] = df['tds_0'].divide(divide_by)
             df['tds_1'] = df['tds_1'].divide(divide_by)
-        return df
-
-    def _format_df(self,df):
-        df.loc[self.df['independent_variable'] == 'talk_age']['total'] = 'N/A'
-        df.loc[self.df['independent_variable'] == 'page_age']['total'] = 'N/A'
         return df
         
     def generate_stats(self):
@@ -63,9 +58,7 @@ class ML_WP_Population_Analyzer(object):
         result = result.merge(self._get_std(),on='independent_variable')
         # find the variance for each language
         result = result.merge(self._get_var(),on='independent_variable')
-        result = self._format_df(result)
         result = result.replace(to_replace={'independent_variable':self.variable_names})
-        print(result)
         self.result = result
         return result
 
@@ -83,9 +76,11 @@ class ML_WP_Population_Analyzer(object):
 
     def _get_totals(self):
         utils.log('calculating totals')
-        by_lang = self.df[self.independent_vars].sum().to_frame('total').reset_index().rename(columns={'index':'independent_variable'})
-        print(by_lang)
-        return by_lang
+        df = self.df[self.independent_vars].sum().to_frame('total')
+        df = df.set_value('tds_0','total',None)
+        df = df.set_value('tds_1','total',None)
+        df = df.reset_index().rename(columns={'index':'independent_variable'})
+        return df
 
     def _get_means(self):
         utils.log('calculating means')
