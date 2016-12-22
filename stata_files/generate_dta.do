@@ -1,4 +1,4 @@
-// stata batch command: StataSE -b do filename
+// stata batch command: StataSE -b do <filename> <input_.csv> <output_.dta>
 //setup variables -- only needs to run once. ignore - already done w/ .dta file
 // pass .csv file as first command line arg
 // pass output .dta file as second command line arg

@@ -6,6 +6,7 @@ import utils
 import argparse
 from concurrent.futures import ProcessPoolExecutor
 from functools import partial
+import gc
 
 WORKERS = 4
 
@@ -31,6 +32,7 @@ def main(n,outfile,observed_df,file_format):
         outfile_name = "{0}_{1}.dta".format(outfile,n)
         simulated_df.to_stata(outfile_name,write_index=False)
         #if i % 10 == 0:
+    gc.collect()
     utils.log('finished {0}'.format(n))
 
 if __name__ == "__main__":
