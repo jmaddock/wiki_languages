@@ -65,5 +65,5 @@ if __name__ == "__main__":
                         file_format=args.file_format)
     # create a process pool and execute main
     with ProcessPoolExecutor(max_workers=args.workers) as executor:
-        executor.map(main_func,range(args.num),chunksize=int(chunksize))
+        executor.map(main_func,range(args.num))
     utils.log('processed {0} files'.format(args.num))
