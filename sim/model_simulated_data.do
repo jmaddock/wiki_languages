@@ -2,8 +2,12 @@
 // import files from command line
 // pass .dta file as first command line argument
 //use "/Users/klogg/research_data/wiki_language_data/stata_files/combined_edit_ratios_no_title_drop1.dta"
-use `1"
+use `1'
 local output_dir = "`2'"
+
+// change time column to years
+gen talk_age_year = tds_1 / (60 * 60 * 24 * 365)
+gen article_age_year = tds_0 / (60 * 60 * 24 * 365)
 
 // get language tabs
 tabulate lang
