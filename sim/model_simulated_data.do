@@ -14,23 +14,6 @@ tabulate lang
 // encode string variable to categorical
 encode lang, generate(lang2)
 
-// create first model using talk and article vars
-// drop single outlier for en
-nbreg len_1 num_editors_1 talk_age_year len_0 article_age_year if len_1 < 50000, robust
-
-// output the coeficient estimates with standard errors and confidence intervals
-matrix output = r(table)
-local output_path = "`output_dir'" + "talk_article_model.tsv"
-estout m(output) using `output_path', replace label
-
-// get the coeficient percent estimates and store them to a matrix1
-listcoef
-matrix output = r(table)
-listcoef, percent
-matrix output = output,r(table)
-local output_path = "`output_dir'" + "talk_article_model_percents.tsv"
-estout m(output) using `output_path', replace label
-
 // create full model using talk, article, and language vars
 // drop single outlier for en
 nbreg len_1 num_editors_1 talk_age_year len_0 article_age_year ib5.lang2 if len_1 < 50000, robust
