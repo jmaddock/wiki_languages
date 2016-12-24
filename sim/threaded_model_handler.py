@@ -30,7 +30,7 @@ class ThreadedModelHandler(object):
 
         def run_model_subprocess(self,infile,outfile):
             utils.log('processing {0}'.format(infile))
-            subprocess.run(['StataSE','-e','do',self.stata_do_file,infile,outfile])
+            subprocess.run(['stata','-e','do',self.stata_do_file,infile,outfile])
             utils.log('finished {0}'.format(outfile))
 
         def run_models(self):
