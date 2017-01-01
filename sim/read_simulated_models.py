@@ -1,5 +1,8 @@
-import pandas as pd
 import os
+import sys
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import utils
+import pandas as pd
 import argparse
 
 class ModelReader(object):
@@ -16,10 +19,11 @@ class ModelReader(object):
     # create a list of file paths from indir if the file name contains base_file_name
     def get_model_file_list(self):
         if self.file_id_range:
-            self.infile_list = [os.path.join(self.indir,x) for x in os.listdir(self.indir) if self.base_file_name in x and self.file_id_range[0] <= int(x.replace(self.base_file_name,'')) <= self.file_id_range[1]]
+            self.model_file_list = [os.path.join(self.indir,x) for x in os.listdir(self.indir) if self.base_file_name in x and self.file_id_range[0] <= int(x.replace(self.base_file_name,'')) <= self.file_id_range[1]]
         else:
-            self.infile_list = [os.path.join(self.indir,x) for x in os.listdir(self.indir) if self.base_file_name in x]
-        print(self.model_file_list)
+            self.model_file_list = [os.path.join(self.indir,x) for x in os.listdir(self.indir) if self.base_file_name in x]
+        utils.log('found {0} files in {1}'.format(len(self.model_file_list),self.indir))
+        
 
     #def get_label_mapping(self):
     #    label_df = pd.read_table(coef_lables_file,header=1,index_col=None,na_values='.')['Unnamed: 0'].values
@@ -30,7 +34,7 @@ class ModelReader(object):
         df = pd.DataFrame()
         for model_file in self.model_file_list:
             # read simulated model file
-            input_df = pd.read_table(infile,header=1,index_col=None,na_values='.')
+            input_df = pd.read_table(model_file,header=1,index_col=None,na_values='.')
             # get the row that matches simulated statistic (probably b or s.e.)
             input_df = input_df.loc[input_df['Unnamed: 0'] == self.simulated_statistic]
             # get the number of the model from the file name
@@ -41,6 +45,7 @@ class ModelReader(object):
     # write combined results dataframe to output file path
     def write_results(self):
         self.combined_model_results.to_csv(self.outfile,index=False)
+        utils.log('wrote {0} rows to {1}'.format(len(self.combined_model_results),self.outfile))
 
 def main():
     parser = argparse.ArgumentParser(description='process wiki data')
@@ -59,7 +64,7 @@ def main():
     parser.add_argument('-r','--file_ID_range',
                         nargs=2,
                         type=int,
-                        help='specify a range of id numbers for the file to fall between')
+                        help='specify a range of id numbers for the file to fall between (min,max)')
     args = parser.parse_args()
     model_reader = ModelReader(indir=args.indir,
                                outfile=args.outfile,
@@ -67,8 +72,8 @@ def main():
                                base_file_name=args.base_file_name,
                                file_id_range=args.file_ID_range)
     model_reader.get_model_file_list()
-    #model_reader.read_model_files()
-    #model_reader.write_results()
+    model_reader.read_model_files()
+    model_reader.write_results()
     
 if __name__ == "__main__":
     main()
