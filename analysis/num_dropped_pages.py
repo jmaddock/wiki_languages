@@ -6,6 +6,7 @@ import datetime
 import utils
 import argparse
 import config
+import gc
 
 class DroppedCounter(object):
     def __init__(self,outfile,date_threshold):
@@ -49,10 +50,10 @@ class DroppedCounter(object):
                                                                       'unlinked_pages':unlinked_pages,
                                                                       'dropped_bot_edits':dropped_bot_edits,
                                                                       'lang':lang}]))
+            gc.collect()
         total = dropped_count_df.sum(numeric_only=True).to_frame().transpose()
         total['lang'] = 'total'
         dropped_count_df = dropped_count_df.append(total)
-        print(dropped_count_df)
         self.dropped_count_df = dropped_count_df
         
     def check_bot_file(self):
@@ -65,7 +66,6 @@ class DroppedCounter(object):
         return df.loc[df['linked_id'].notnull()]
         
     def count_unlinked(self,df):
-        print(df.loc[df['linked_id'].isnull()])
         return len(df.loc[df['linked_id'].isnull()])
 
     def drop1_count(self,df):
@@ -162,10 +162,8 @@ class DroppedCounter(object):
         result[['no_revert_len']] = result[['no_revert_len']].fillna(value=0,axis=1)
         # calculate the age of a given page
         age = self.page_age(df)
-        print(age)
         # calculate the number of editors that have contributed to a give page
         editors = self.num_editors(df)
-        print(editors)
         # merge the editor and age columns w/ the result df
         result = result.merge(age,on='page_id').merge(editors,on='page_id')
         # drop pages w/ single editors and single edits
@@ -190,7 +188,6 @@ class DroppedCounter(object):
         result = df.loc[df['archive'] == 'None']
         # get an archived id for each archive that doesn't have an un-archived page 
         only_archive = self.get_archives_without_unarchived(df)
-        print(len(only_archive))
         # concat the 2 dfs
         result = pd.concat([result,only_archive])
         return result
