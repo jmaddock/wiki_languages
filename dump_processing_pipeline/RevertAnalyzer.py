@@ -24,6 +24,7 @@ def main():
                         help='combined edit ratios csv from which to calculate edit ratios')
     parser.add_argument('-o','--outfile',
                         help='output csv')
+    args = parser.parse_args()
     df = pd.read_csv(args.infile,na_values={'title':''},keep_default_na=False,dtype={'title': object})
     df = get_reverts(df)
     write_file(df)
