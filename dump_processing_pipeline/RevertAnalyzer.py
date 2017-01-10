@@ -14,7 +14,7 @@ def get_reverts(df):
     return df
 
 def write_file(df,outfile):
-    columns = ['page_id_1','len_1','num_editors_1','tds_1','lang','page_id_0','len_0','num_editors_0','tds_0','ratio','editor_ratio','reverts_1','reverts_0']
+    columns = ['page_id_1','len_1','num_editors_1','tds_1','lang','page_id_0','len_0','num_editors_0','tds_0','ratio','editor_ratio','reverts_1','reverts_0','no_revert_len_1','no_revert_len_0']
     df.to_csv(outfile,na_rep='NaN',encoding='utf-8',columns=columns,index=False)
 
 
