@@ -13,7 +13,7 @@ def get_reverts(df):
     df['reverts_0'] = df['len_0'].subtract(df['no_revert_len_0'])
     return df
 
-def write_file(df):
+def write_file(df,outfile):
     columns = ['page_id_1','len_1','num_editors_1','tds_1','lang','page_id_0','len_0','num_editors_0','tds_0','ratio','editor_ratio','reverts_1','reverts_0']
     df.to_csv(outfile,na_rep='NaN',encoding='utf-8',columns=columns,index=False)
 
@@ -27,7 +27,7 @@ def main():
     args = parser.parse_args()
     df = pd.read_csv(args.infile,na_values={'title':''},keep_default_na=False,dtype={'title': object})
     df = get_reverts(df)
-    write_file(df)
+    write_file(df,args.outfile)
         
 if __name__ == "__main__":
     main()
