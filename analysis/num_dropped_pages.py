@@ -108,7 +108,7 @@ class DroppedCounter(object):
 
     def get_lang_dirs_from_config(self):
         # get list of languages from directory structure
-        lang_list = [name for name in os.listdir(config.ROOT_PROCESSED_DIR) if (os.path.isdir(os.path.join(config.ROOT_PROCESSED_DIR,name)) and 'combined' not in name)]
+        lang_list = [name for name in os.listdir(config.ROOT_PROCESSED_DIR) if (os.path.isdir(os.path.join(config.ROOT_PROCESSED_DIR,name)) and 'combined' not in name and 'simple' not in name)]
         # get full file path
         file_list = [os.path.join(config.ROOT_PROCESSED_DIR,lang,config.COMBINED_RAW_EDITS) for lang in lang_list]
         return file_list

@@ -10,4 +10,6 @@ stata_files/*.tsv
 stata_files/*.log
 viz_scripts/*.csv
 *.dta
+*.log
+*.ipynb
 
