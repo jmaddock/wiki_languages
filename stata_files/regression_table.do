@@ -18,7 +18,7 @@ rename lang2 language
 // create all models
 // drop single outlier for en
 eststo: nbreg talk_edits talk_authors talk_age article_edits article_age if talk_edits < 50000, robust
-eststo: nbreg talk_edits talk_authors talk_age article_edits article_age language if talk_edits < 50000, robust
+eststo: nbreg talk_edits talk_authors talk_age article_edits article_age ib5.language if talk_edits < 50000, robust
 
 // output the coeficient estimates with standard errors and confidence intervals
 local output_path = "`output_dir'"
