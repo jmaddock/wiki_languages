@@ -41,7 +41,7 @@ def format_table(simulated_infile,observed_infile,labels_file):
     return result_df
 
 def make_graph(result_df):
-    fig = plt.figure(figsize=(4,4))
+    fig = plt.figure(figsize=(4,5))
     result_df = result_df.sort_values(by='b')
     plt.errorbar(x=result_df['50%'],
                  y=np.arange(len(result_df)),

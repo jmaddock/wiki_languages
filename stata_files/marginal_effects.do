@@ -30,4 +30,7 @@ matrix output = (output \ r(table))
 margins, at((p50) num_editors_1 (p50) talk_age_year (p99) len_0 (p50) article_age_year lang2=(5,7,10,17))
 matrix output = (output \ r(table))
 
+margins, at((p50) num_editors_1 (p50) talk_age_year (p99.9) len_0 (p50) article_age_year lang2=(5,7,10,17))
+matrix output = (output \ r(table))
+
 estout m(output) using `2', replace
