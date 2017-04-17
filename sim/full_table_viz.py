@@ -40,21 +40,29 @@ def format_table(simulated_infile,observed_infile,labels_file):
     result_df = result_df.reset_index()
     return result_df
 
-def make_graph(result_df):
+def make_graph(result_df,graph_type):
     fig = plt.figure(figsize=(4,5))
     result_df = result_df.sort_values(by='b')
-    plt.errorbar(x=result_df['50%'],
+    if graph_type == 'bars':
+        lw=4
+        plt.errorbar(x=result_df['50%'],
                  y=np.arange(len(result_df)),
                  xerr=[result_df['50%'], result_df['b'].subtract(result_df['50%'])],
                  fmt='none',
-                 ecolor='gray',
+                 ecolor='grey',
                  lw=2)
+    else:
+        plt.plot(result_df['b'],
+                 np.arange(len(result_df)),
+                 '.')
+        lw=1
     plt.errorbar(x=result_df['50%'],
-                 y=np.arange(len(result_df)),
-                 xerr=[result_df['50%'].subtract(result_df['min']),
-                       result_df['max'].subtract(result_df['50%'])],
-                 lw=4,
-                 fmt='none')
+                     y=np.arange(len(result_df)),
+                     xerr=[result_df['50%'].subtract(result_df['min']),
+                           result_df['max'].subtract(result_df['50%'])],
+                     lw=lw,
+                     ecolor='gray',
+                     fmt='none')
     plt.yticks(np.arange(len(result_df)), result_df['lang'])
     plt.ylim(-1, len(result_df))
     plt.ylabel('Language Edition')
@@ -75,11 +83,14 @@ def main():
     parser.add_argument('--show_graph',
                         action='store_true',
                         help='flag to plot graph in new window')
+    parser.add_argument('-t','--graph_type',
+                        choices=['bars','points'],
+                        help='')
     args = parser.parse_args()
     result_df = format_table(simulated_infile=args.simulated_infile,
                              observed_infile=args.actual_infile,
                              labels_file=args.labels_file)
-    fig = make_graph(result_df)
+    fig = make_graph(result_df,args.graph_type)
     if args.outfile:
         fig.savefig(args.outfile)
     if args.show_graph:

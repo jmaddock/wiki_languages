@@ -7,15 +7,18 @@ import utils
 import argparse
 import config
 
-def get_last_date(infile_name):
+def get_num_editors(infile_name):
     # read raw edit csv
     df = utils.read_wiki_edits_file(infile_name)
-    # convert date string to datetime object
-    df['ts'] = pd.to_datetime(df['ts'],format="%Y-%m-%d %H:%M:%S")
-    # get the last date in the csv
-    last_date = df.ix[df['ts'].idxmax()]
-    print(last_date)
-    return last_date
+    # get language from file path
+    lang = infile.replace(config.ROOT_PROCESSED_DIR,'').replace(config.COMBINED_RAW_EDITS,'').replace('/','')
+    # get the total number of editors
+    num_editors_no_IP = len(edit_df.loc[edit_df['user_id'] != 'None']['user_id'].unique())
+    num_editors_include_anon = len(edit_df.loc['user_text'].unique())
+    result = pd.DataFrame([{'lang':lang,
+                            'num_editors_no_anon':num_editors_no_IP,
+                            'num_editors_include_anon':num_editors_include_anon}])
+    return result
 
 def get_lang_dirs_from_config():
     # get list of languages from directory structure
@@ -36,9 +39,7 @@ def main():
     for infile in infile_list:
         utils.log('processing {0}'.format(infile))
         # get the datetime of the last edit
-        df = df.append(get_last_date(infile))
-    # sort the values
-    df = df.sort_values(by='ts',ascending=True)
+        df = df.append(get_num_editors(infile))
     print(df)
     df.to_csv(args.outfile,index=False)
 
