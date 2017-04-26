@@ -14,9 +14,13 @@ tabulate lang
 // encode string variable to categorical
 encode lang, generate(lang2)
 
+// generate log vars
+gen log_no_revert_len_0 = ln(no_revert_len_0)
+gen log_len_1 = ln(len_1)
+
 // create full model using talk, article, and language vars
 // drop single outlier for en
-nbreg reverts_0 len_1 talk_age_year no_revert_len_0 article_age_year ib5.lang2 if len_1 < 50000, robust
+nbreg reverts_0 log_len_1 talk_age_year log_no_revert_len_0 article_age_year ib5.lang2 if len_1 < 50000, robust
 
 // output the coeficient estimates with standard errors and confidence intervals
 matrix output = r(table)
