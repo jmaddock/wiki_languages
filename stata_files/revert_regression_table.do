@@ -1,7 +1,7 @@
 // StataSE -b do regression_table.do <input.dta> <output.tex>
 // add language -> ib5.language for expanded dummy vars
 
-use `1'
+import delimited using `1'
 local output_dir = "`2'"
 
 // change time column to years
