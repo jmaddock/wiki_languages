@@ -24,6 +24,8 @@ class ML_WP_Population_Analyzer(object):
             'tds_0',
             'num_editors_1',
             'num_editors_0',
+            'no_revert_len_0',
+            'reverts_0'
         ]
         self.variable_names = {
             'len_1':'talk_edits',
@@ -32,6 +34,8 @@ class ML_WP_Population_Analyzer(object):
             'tds_0':'article_age',
             'num_editors_1':'talk_authors',
             'num_editors_0':'article_authors',
+            'no_revert_len_0':'non_reverted_edits',
+            'reverts_0':'article_reverts'
         }
         # dataframe of basic stats
         self.result = None
