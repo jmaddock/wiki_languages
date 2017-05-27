@@ -20,12 +20,14 @@ def make_table(simulated_infile,observed_infile,labels_file=None):
     result_df = result_df.merge(observed_df[['vars','b']],on='vars')
     if labels_file:
         # read the labels file and import b as an object
-        labels = pd.read_table(labels_file,header=1,dtype={'b':object})
-        labels = labels.rename(columns={'Unnamed: 0':'lang'})
+        labels = pd.read_csv(labels_file,header=1,dtype={'b':object})
+        labels = labels.rename(columns={'Unnamed: 1':'lang'})
+        print(labels)
         # merge labels with results based on observed coefs (b)
         result_df = result_df.merge(labels,on='b')
         # eliminate all non-language coefficients
         result_df = result_df.loc[result_df['lang'].str.len() == 2]
+    print(result_df)
     result_df['b'] = pd.to_numeric(result_df['b'])
     result_df['num_sd'] = result_df['b'].subtract(result_df['mean']).divide(result_df['std'])
     result_df = result_df.loc[result_df['lang'] != 'en']

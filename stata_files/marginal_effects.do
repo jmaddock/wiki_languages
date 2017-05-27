@@ -15,22 +15,19 @@ nbreg len_1 num_editors_1 talk_age_year len_0 article_age_year ib5.lang2 if len_
 margins, at((p50) num_editors_1 (p50) talk_age_year (p50) len_0 (p50) article_age_year lang2=(5,7,10,17))
 matrix output = r(table)
 
-margins, at((p50) num_editors_1 (p50) talk_age_year (p75) len_0 (p50) article_age_year lang2=(5,7,10,17))
+margins, at((p75) num_editors_1 (p75) talk_age_year (p75) len_0 (p57) article_age_year lang2=(5,7,10,17))
 matrix output = (output \ r(table))
 
-margins, at((p50) num_editors_1 (p50) talk_age_year (p90) len_0 (p50) article_age_year lang2=(5,7,10,17))
+margins, at((p90) num_editors_1 (p90) talk_age_year (p90) len_0 (p90) article_age_year lang2=(5,7,10,17))
 matrix output = (output \ r(table))
 
-margins, at((p50) num_editors_1 (p50) talk_age_year (p95) len_0 (p50) article_age_year lang2=(5,7,10,17))
+margins, at((p95) num_editors_1 (p95) talk_age_year (p95) len_0 (p95) article_age_year lang2=(5,7,10,17))
 matrix output = (output \ r(table))
 
-margins, at((p50) num_editors_1 (p50) talk_age_year (p97) len_0 (p50) article_age_year lang2=(5,7,10,17))
+margins, at((p97) num_editors_1 (p97) talk_age_year (p97) len_0 (p97) article_age_year lang2=(5,7,10,17))
 matrix output = (output \ r(table))
 
-margins, at((p50) num_editors_1 (p50) talk_age_year (p99) len_0 (p50) article_age_year lang2=(5,7,10,17))
-matrix output = (output \ r(table))
-
-margins, at((p50) num_editors_1 (p50) talk_age_year (p99.9) len_0 (p50) article_age_year lang2=(5,7,10,17))
+margins, at((p99) num_editors_1 (p99) talk_age_year (p99) len_0 (p99) article_age_year lang2=(5,7,10,17))
 matrix output = (output \ r(table))
 
 estout m(output) using `2', replace
