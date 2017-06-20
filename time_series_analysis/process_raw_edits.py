@@ -373,6 +373,7 @@ def main():
                                           duration=args.duration_bin)
         max_relative_age = raw_edit_df['relative_age'].max()
         for i in range(max_relative_age):
+            utils.log('created df for relative date threshold: {0}'.format(i))
             df = c.rev_size(df=raw_edit_df,
                             relative_date_threshold=i)
             if args.lang == 'en':
@@ -381,6 +382,7 @@ def main():
             df = c.link_documents(df)
             df = c.edit_ratios(df)
             outfile_name = os.path.join(args.outdir,'_{0}_{1}.csv'.format(args.lang,i))
+            utils.log('writing file {0}'.format(outfile_name))
             df.to_csv(outfile_name,na_rep='NaN',encoding='utf-8',index=False)
 
 if __name__ == "__main__":
