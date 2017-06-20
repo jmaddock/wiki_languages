@@ -69,8 +69,10 @@ def graph_margins(infile,coef_type,group_by=None):
 def _group_by(df,column=None,infile=None):
     if infile:
         ordered_df = pd.read_csv(infile,index_col=None)
+        df = df.rename(columns = {'vars':'lang'})
         df = df.merge(ordered_df,on='lang')
         df = df.sort_values('order_by') # fix this
+        df = df.rename(columns = {'lang':'vars'})
     elif column:
         df = df.sort_values(column)
     else:
@@ -104,7 +106,6 @@ def main():
         fig.savefig(args.outfile)
     if args.show_graph:
         plt.show()
-        
     
 if __name__ == "__main__":
     main()

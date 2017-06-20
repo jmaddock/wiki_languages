@@ -27,13 +27,14 @@ def format_table(simulated_infile,observed_infile,labels_file):
         # read the labels file and import b as an object
     labels = pd.read_table(labels_file,header=1,dtype={'b':object})
     labels = labels.rename(columns={'Unnamed: 0':'lang'})
+    labels = labels[['lang','b.1']].rename(columns={'b.1':'b'})
+    result_df['50%'] = pd.to_numeric(result_df['50%'])
+    result_df['b'] = pd.to_numeric(result_df['b'])
     # merge labels with results based on observed coefs (b)
     result_df = result_df.merge(labels,on='b')
     # eliminate all non-language coefficients
     result_df = result_df.loc[result_df['lang'].str.len() == 2]
     # make sure columns are numeric
-    result_df['50%'] = pd.to_numeric(result_df['50%'])
-    result_df['b'] = pd.to_numeric(result_df['b'])
     # drop english reference
     result_df = result_df.loc[result_df['lang'] != 'en']
     # reset index for graphing

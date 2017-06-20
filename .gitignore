@@ -12,4 +12,5 @@ viz_scripts/*.csv
 *.dta
 *.log
 *.ipynb
+*.idea
 
