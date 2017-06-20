@@ -242,10 +242,6 @@ class Page_Edit_Counter(object):
 
     def edit_ratios(self,df=None,r='len'):
         utils.log('creating edit ratios %s' % self.wiki_name)
-        if not isinstance(df, pd.DataFrame):
-            f_in_name = os.path.join(self.db_path,config.LINKED_EDIT_COUNTS)
-            utils.log('loading data from file %s' % f_in_name)
-            df = pd.read_csv(f_in_name, na_values={'title': ''}, keep_default_na=False, dtype={'title': object})
         df.page_id = df.page_id.astype(float)
         df.linked_id = df.linked_id.astype(float)
         df = df.loc[df['linked_id'].notnull()]
@@ -269,7 +265,6 @@ class Page_Edit_Counter(object):
         utils.log('%s ratios' % len(ratio))
         ratio = ratio.rename(columns = {'page_id.1':'page_id'})
         merged = ratio.merge(n1,left_index=True,right_index=True,how='outer',suffixes=['_0','_1'])
-        result_path =  os.path.join(self.db_path,config.MERGED_EDIT_RATIOS)
         merged = merged.rename(columns = {'title_1':'title',
                                           'lang_1':'lang',
                                           'page_id':'page_id_1',
