@@ -371,7 +371,7 @@ def main():
         raw_edit_df = c.load_raw_edit_file(args.infile)
         raw_edit_df = c.reletive_page_age(df=raw_edit_df,
                                           duration=args.duration_bin)
-        max_relative_age = raw_edit_df['relative_age'].max()
+        max_relative_age = int(raw_edit_df['relative_age'].max())
         for i in range(max_relative_age):
             utils.log('created df for relative date threshold: {0}'.format(i))
             df = c.rev_size(df=raw_edit_df,
