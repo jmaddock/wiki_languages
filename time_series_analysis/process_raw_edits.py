@@ -199,7 +199,7 @@ class Page_Edit_Counter(object):
         # drop pages w/ single editors and single edits
         if self.drop1:
             result = self._drop1(result)
-        result = result[['page_id','title','namespace','len','no_revert_len','num_editors','td','tds','lang','relative_age']]
+        result = result[['page_id','title','namespace','len','no_revert_len','num_editors','td','tds','lang']]
         return result
 
     ## find the timedelta between the first and the last edit to a page (not between edits)
@@ -275,7 +275,7 @@ class Page_Edit_Counter(object):
                                           'lang_1':'lang',
                                           'page_id':'page_id_1',
                                           'linked_id_1':'page_id_0'})
-        columns = ['page_id_1','title','len_1','no_revert_len_1','num_editors_1','td_1','tds_1','lang','page_id_0','len_0','no_revert_len_0','num_editors_0','td_0','tds_0','relative_age_0','relative_age_1']
+        columns = ['page_id_1','title','len_1','no_revert_len_1','num_editors_1','td_1','tds_1','lang','page_id_0','len_0','no_revert_len_0','num_editors_0','td_0','tds_0']
         merged = merged[columns]
         return merged
 
@@ -372,8 +372,9 @@ def main():
         raw_edit_df = c.reletive_page_age(df=raw_edit_df,
                                           duration=args.duration_bin)
         max_relative_age = int(raw_edit_df['relative_age'].max())
+        utils.log('found {0} relative date bins'.format(max_relative_age))
         for i in range(max_relative_age):
-            utils.log('created df for relative date threshold: {0}'.format(i))
+            utils.log('creating df for relative date threshold: {0}'.format(i))
             df = c.rev_size(df=raw_edit_df,
                             relative_date_threshold=i)
             if args.lang == 'en':
