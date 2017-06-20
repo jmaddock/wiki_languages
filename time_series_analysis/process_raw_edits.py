@@ -7,6 +7,7 @@ import utils
 import argparse
 import config
 import numpy as np
+import gc
 
 ## --ratio and --merge FLAGS MUST BE USED WITH LOADED .CSV FILE
 
@@ -35,7 +36,7 @@ class Page_Edit_Counter(object):
             tp = pd.read_csv(f_in_name,
                              na_values={'title':'','user_text':''},
                              keep_default_na=False,
-                             dtype={'title': object,'author': object},
+                             dtype={'title': object,'user_text': object},
                              iterator=True,
                              chunksize=1000)
             df = pd.concat(tp, ignore_index=True)
@@ -121,9 +122,9 @@ class Page_Edit_Counter(object):
         df = df.loc[df['ts'] <= self.date_threshold]
         return df
 
-    def threshold_by_relative_date(self, df):
+    def threshold_by_relative_date(self, df, relative_date_threshold):
         # get all edits earlier than date_threshold
-        df = df.loc[df['ts'] <= self.relative_date_threshold]
+        df = df.loc[df['relative_age'] <= relative_date_threshold]
         return df
 
     ## remove all rows containing an archive to get only active page ids
@@ -133,7 +134,6 @@ class Page_Edit_Counter(object):
         result = df.loc[df['archive'] == 'None']
         # get an archived id for each archive that doesn't have an un-archived page
         only_archive = self.get_archives_without_unarchived(df)
-        print(len(only_archive))
         # concat the 2 dfs
         result = pd.concat([result,only_archive])
         return result
@@ -162,11 +162,11 @@ class Page_Edit_Counter(object):
             utils.log('dropping bot edits')
             df = self.flag_bots(df)
             df = self.remove_bots(df)
-        if self.date_threshold:
+        if self.date_threshold is not None:
             utils.log('applying date threshold')
             df = self.threshold_by_date(df)
-        if relative_date_threshold:
-            df = self.threshold_by_relative_date(df)
+        if relative_date_threshold is not None:
+            df = self.threshold_by_relative_date(df,relative_date_threshold)
         # create a dataframe w/out reverted edits
         no_revert_count_df = df.loc[(df['revert'] == False)]
         # create a "result" dataframe with only non-archived pages
@@ -245,6 +245,8 @@ class Page_Edit_Counter(object):
         df.page_id = df.page_id.astype(float)
         df.linked_id = df.linked_id.astype(float)
         df = df.loc[df['linked_id'].notnull()]
+        if len(df) == 0:
+            return None
         df = self.drop_dups(df)
         utils.log('dropped %s duplicates' % len(df.set_index('page_id',drop=False).index.get_duplicates()))
         df = df.drop_duplicates(subset='page_id',keep=False)
@@ -368,17 +370,22 @@ def main():
         max_relative_age = int(raw_edit_df['relative_age'].max())
         utils.log('found {0} relative date bins'.format(max_relative_age))
         for i in range(max_relative_age):
+            df = raw_edit_df
             utils.log('creating df for relative date threshold: {0}'.format(i))
-            df = c.rev_size(df=raw_edit_df,
+            df = c.rev_size(df=df,
                             relative_date_threshold=i)
             if args.lang == 'en':
                 clean_en = Clean_En(df)
                 df = clean_en.clean()
             df = c.link_documents(df)
             df = c.edit_ratios(df)
+            if df is None:
+                utils.log('no matched pages in bin {0}'.format(i))
+                continue
             outfile_name = os.path.join(args.outdir,'_{0}_{1}.csv'.format(args.lang,i))
             utils.log('writing file {0}'.format(outfile_name))
             df.to_csv(outfile_name,na_rep='NaN',encoding='utf-8',index=False)
+            gc.collect()
 
 if __name__ == "__main__":
     main()
