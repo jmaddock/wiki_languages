@@ -72,7 +72,6 @@ class Page_Edit_Counter(object):
         if v:
             print(result)
         result['page_id'] = result.index
-        result_path = os.path.join(self.db_path,config.LINKED_EDIT_COUNTS)
         columns = ['page_id','title','namespace','len','no_revert_len','num_editors','td','tds','lang','linked_id']
         result = self.drop_dups(result)
         result = result[columns]
