@@ -10,7 +10,9 @@ SCRIPT_DIR = os.path.abspath(__file__)
 def combine_threshold_files(file_list):
     result_df = pd.DataFrame()
     for f in file_list:
+        utils.log('adding file {0}'.format(f))
         result_df = result_df.append(pd.read_csv(f,na_values={'title':''},keep_default_na=False))
+    utils.log('{0} article/talk pairs'.format(len(result_df)))
     return result_df
 
 def create_file_list(base_dir,num):
