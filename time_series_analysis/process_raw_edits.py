@@ -74,6 +74,8 @@ class Page_Edit_Counter(object):
             print(result)
         result['page_id'] = result.index
         columns = ['page_id','title','namespace','len','no_revert_len','num_editors','td','tds','lang','linked_id']
+        if len(result) == 0:
+            return None
         result = self.drop_dups(result)
         result = result[columns]
         return result
@@ -378,6 +380,9 @@ def main():
                 clean_en = Clean_En(df)
                 df = clean_en.clean()
             df = c.link_documents(df)
+            if df is None:
+                utils.log('no matched pages in bin {0}'.format(i))
+                continue
             df = c.edit_ratios(df)
             if df is None:
                 utils.log('no matched pages in bin {0}'.format(i))
