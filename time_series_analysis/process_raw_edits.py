@@ -373,7 +373,7 @@ def main():
                                           duration=args.duration_bin)
         max_relative_age = int(raw_edit_df['relative_age'].max()) + 1
         if args.start_bin:
-            start_bin = args.start_bin
+            start_bin = int(args.start_bin)
         else:
             start_bin = 0
         utils.log('found {0} relative date bins'.format(max_relative_age))
