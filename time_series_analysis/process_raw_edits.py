@@ -341,6 +341,8 @@ def main():
                         help='path to a file of raw edits')
     parser.add_argument('-o', '--outdir',
                         help='path to the output file')
+    parser.add_argument('-s', '--start_bin',
+                        help='start at a particular bin, omit to process all bins')
     parser.add_argument('--duration_bin',
                         choices=['day','week','month','year'],
                         help='the duration of relative age to bin by')
@@ -369,9 +371,13 @@ def main():
         raw_edit_df = c.load_raw_edit_file(args.infile)
         raw_edit_df = c.reletive_page_age(df=raw_edit_df,
                                           duration=args.duration_bin)
-        max_relative_age = int(raw_edit_df['relative_age'].max())
+        max_relative_age = int(raw_edit_df['relative_age'].max()) + 1
+        if args.start_bin:
+            start_bin = args.start_bin
+        else
+            start_bin = 0
         utils.log('found {0} relative date bins'.format(max_relative_age))
-        for i in range(max_relative_age):
+        for i in range(start_bin,max_relative_age):
             df = raw_edit_df
             utils.log('creating df for relative date threshold: {0}'.format(i))
             df = c.rev_size(df=df,
