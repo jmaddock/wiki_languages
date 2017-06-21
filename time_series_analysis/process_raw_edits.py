@@ -382,7 +382,7 @@ def main():
             if df is None:
                 utils.log('no matched pages in bin {0}'.format(i))
                 continue
-            outfile_name = os.path.join(args.outdir,'_{0}_{1}.csv'.format(args.lang,i))
+            outfile_name = '{0}_{1}_{2}.csv'.format(args.outdir,args.lang,i)
             utils.log('writing file {0}'.format(outfile_name))
             df.to_csv(outfile_name,na_rep='NaN',encoding='utf-8',index=False)
             gc.collect()
