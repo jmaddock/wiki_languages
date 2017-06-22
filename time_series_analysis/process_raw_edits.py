@@ -385,9 +385,8 @@ def main():
         utils.log('found {0} relative date bins'.format(max_relative_age))
         for i in range(start_bin,max_relative_age):
             gc.collect()
-            df = raw_edit_df
             utils.log('creating df for relative date threshold: {0}'.format(i))
-            df = c.rev_size(df=df,
+            df = c.rev_size(df=raw_edit_df,
                             relative_date_threshold=i)
             if args.lang == 'en':
                 clean_en = Clean_En(df)
