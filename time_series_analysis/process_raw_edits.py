@@ -150,9 +150,7 @@ class Page_Edit_Counter(object):
         # get the number of pages
         return archived_talk_pages_without_non_archives
 
-    ## reduce edit csv to page level csv counting edits
-    ## INCLUDES TIMEDELTA AND NUM_EDITORS
-    def rev_size(self,df,relative_date_threshold=None):
+    def preprocess_rev_size(self ,df):
         # check if bot file exists and if not raise OSError
         if self.no_bots:
             if not os.path.isfile(config.BOT_LIST):
@@ -167,6 +165,11 @@ class Page_Edit_Counter(object):
         if self.date_threshold is not None:
             utils.log('applying date threshold')
             df = self.threshold_by_date(df)
+        return df
+
+    ## reduce edit csv to page level csv counting edits
+    ## INCLUDES TIMEDELTA AND NUM_EDITORS
+    def rev_size(self,df,relative_date_threshold=None):
         if relative_date_threshold is not None:
             df = self.threshold_by_relative_date(df,relative_date_threshold)
         # create a dataframe w/out reverted edits
@@ -369,8 +372,11 @@ def main():
                               date_threshold=args.date_threshold,
                               relative_date_threshold=args.relative_date_threshold)
         raw_edit_df = c.load_raw_edit_file(args.infile)
+        raw_edit_df = c.preprocess_rev_size(df=raw_edit_df)
+        gc.collect()
         raw_edit_df = c.reletive_page_age(df=raw_edit_df,
                                           duration=args.duration_bin)
+        gc.collect()
         max_relative_age = int(raw_edit_df['relative_age'].max()) + 1
         if args.start_bin:
             start_bin = int(args.start_bin)
@@ -379,9 +385,8 @@ def main():
         utils.log('found {0} relative date bins'.format(max_relative_age))
         for i in range(start_bin,max_relative_age):
             gc.collect()
-            df = raw_edit_df
             utils.log('creating df for relative date threshold: {0}'.format(i))
-            df = c.rev_size(df=df,
+            df = c.rev_size(df=raw_edit_df,
                             relative_date_threshold=i)
             if args.lang == 'en':
                 clean_en = Clean_En(df)
