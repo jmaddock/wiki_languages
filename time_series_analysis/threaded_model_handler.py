@@ -21,7 +21,7 @@ class ThreadedModelHandler(object):
 
         def get_file_lists(self):
             if not self.debug_file:
-                self.infile_list = [os.path.join(self.indir,x) for x in os.listdir(self.indir) if x[-4:] == '.dta']
+                self.infile_list = [os.path.join(self.indir,x) for x in os.listdir(self.indir) if x[-4:] == '.csv']
                 pattern = re.compile('([0-9]+).csv')
                 self.outfile_list = [os.path.join(self.outdir,pattern.search(x).group(1)) for x in self.infile_list]
             else:
