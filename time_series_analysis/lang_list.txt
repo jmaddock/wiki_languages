@@ -1,0 +1,13 @@
+ar
+he
+it
+ja
+nl
+ca
+cs
+de
+en
+es
+fa
+fi
+fr

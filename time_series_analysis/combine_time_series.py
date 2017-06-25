@@ -15,13 +15,28 @@ def combine_threshold_files(file_list):
     utils.log('{0} article/talk pairs'.format(len(result_df)))
     return result_df
 
-def create_file_list(base_dir,num):
-    file_list = [os.path.join(base_dir,f) for f in os.listdir(base_dir) if strip_filename(f) == str(num)]
-    utils.log('found {0} file for bin {1}'.format(len(file_list),num))
+def create_file_list(base_dir,num,lang_list=None):
+    if lang_list:
+        file_list = [os.path.join(base_dir, f) for f in os.listdir(base_dir) if
+                     strip_filename(f) == str(num) and get_file_lang(f) in lang_list]
+    else:
+        file_list = [os.path.join(base_dir, f) for f in os.listdir(base_dir) if
+                     strip_filename(f) == str(num)]
+    utils.log('found {0} files for bin {1}'.format(len(file_list),num))
     return file_list
 
 def strip_filename(filename):
     return filename.split('_')[-1].strip('.csv')
+
+def get_file_lang(filename):
+    return filename.split('_')[-2]
+
+def read_lang_list_file(infile):
+    lang_list = []
+    f = open(infile,'r')
+    for line in f:
+        lang_list.append(line)
+    return lang_list
 
 def job_script(args):
     # create the job script file, passed in command line params with -j flag
@@ -49,11 +64,19 @@ if __name__ == "__main__":
                         help='create a job script for processing on hyak')
     parser.add_argument('-n', '--time_series_bin_num',
                         help='the number of the time series bin to combine')
+    parser.add_argument('-l', '--lang_list_file',
+                        help='a list of languages to include.  omit to include all languages')
     args = parser.parse_args()
     if args.job_script:
         job_script(args)
     else:
-        file_list = create_file_list(base_dir=args.indir,num=args.time_series_bin_num)
+        if args.lang_list_file:
+            lang_list = read_lang_list_file(args.lang_list_file)
+        else:
+            lang_list = None
+        file_list = create_file_list(base_dir=args.indir,
+                                     num=args.time_series_bin_num,
+                                     lang_list=lang_list)
         utils.log('combining bin {0} files'.format(args.time_series_bin_num))
         result_df = combine_threshold_files(file_list)
         outfile = '{0}_{1}.csv'.format(args.outdir,args.time_series_bin_num)
