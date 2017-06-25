@@ -16,7 +16,7 @@ encode lang, generate(lang2)
 
 // create full model using talk, article, and language vars
 // drop single outlier for en
-nbreg len_1 num_editors_1 talk_age_year len_0 article_age_year ib5.lang2 if len_1 < 50000, robust
+nbreg len_1 num_editors_1 talk_age_year len_0 article_age_year ib(freq).lang2 if len_1 < 50000, robust
 
 // output the coeficient estimates with standard errors and confidence intervals
 matrix output = r(table)
