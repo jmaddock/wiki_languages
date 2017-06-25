@@ -35,7 +35,7 @@ def read_lang_list_file(infile):
     lang_list = []
     f = open(infile,'r')
     for line in f:
-        lang_list.append(line)
+        lang_list.append(line.strip())
     return lang_list
 
 def job_script(args):
