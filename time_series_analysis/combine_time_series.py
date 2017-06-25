@@ -52,7 +52,7 @@ def job_script(args):
                                                           args.outdir,
                                                           i)
         if args.lang_list_file:
-            out = out + '-l {0}'.format(args.lang_list_file)
+            out = out + ' -l {0}'.format(args.lang_list_file)
         out = out + '\n'
         print(out)
         f.write(out)
