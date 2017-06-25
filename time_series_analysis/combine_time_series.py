@@ -51,6 +51,8 @@ def job_script(args):
                                                           args.indir,
                                                           args.outdir,
                                                           i)
+        if args.lang_list_file:
+            out = out + '-l {0}'.format(args.lang_list_file)
         print(out)
         f.write(out)
 
