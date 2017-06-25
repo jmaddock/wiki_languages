@@ -47,12 +47,13 @@ def job_script(args):
         if num > max_num:
             max_num = num
     for i in range(max_num + 1):
-        out = 'python3 {0} -i {1} -o {2} -n {3}\n'.format(SCRIPT_DIR,
+        out = 'python3 {0} -i {1} -o {2} -n {3}'.format(SCRIPT_DIR,
                                                           args.indir,
                                                           args.outdir,
                                                           i)
         if args.lang_list_file:
             out = out + '-l {0}'.format(args.lang_list_file)
+        out = out + '\n'
         print(out)
         f.write(out)
 
