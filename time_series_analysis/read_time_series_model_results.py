@@ -39,6 +39,7 @@ class ModelReader(object):
                 # get the row that matches simulated statistic (probably b or s.e.)
                 input_df = input_df.loc[input_df['Unnamed: 0'] == self.simulated_statistic]
             else:
+                input_df = input_df.set_index('Unnamed: 0')
                 input_df = input_df.transpose()
                 input_df = input_df[input_df.index == self.simulated_statistic]
             # get the number of the model from the file name
