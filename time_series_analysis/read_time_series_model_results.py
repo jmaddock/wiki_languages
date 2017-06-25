@@ -44,7 +44,7 @@ class ModelReader(object):
                 input_df = input_df[input_df.index == self.simulated_statistic]
             # get the number of the model from the file name
             input_df['model_id'] = model_file.replace(self.indir, '').replace(self.base_file_name, '')
-            df = df.append(input_df)
+            df = df.append(input_df,ignore_index=True)
         self.combined_model_results = df
 
     # write combined results dataframe to output file path
