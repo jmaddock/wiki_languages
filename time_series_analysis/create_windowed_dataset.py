@@ -30,8 +30,8 @@ def main(args):
             utils.log('writing {0}'.format(outfile))
             later.to_csv(outfile)
         else:
-            utils.log('subtracting [{0} - {1}]'.format(infile,earlier_infile))
             earlier_infile = get_earlier_filename(filename)
+            utils.log('subtracting [{0} - {1}]'.format(infile, earlier_infile))
             earlier = pd.read_csv(earlier_infile)
             result = subtract_dfs(earlier=earlier,
                                   later=later)
