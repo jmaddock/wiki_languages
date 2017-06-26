@@ -5,7 +5,10 @@ import pandas as pd
 import utils
 import argparse
 
+SCRIPT_DIR = os.path.abspath(__file__)
+
 def subtract_dfs(earlier,later):
+
     earlier = earlier.set_index(['page_id_1', 'lang'])
     later = later.set_index(['page_id_1', 'lang'])
     result = later[['len_1', 'len_0', 'no_revert_len_1', 'no_revert_len_0', ]].subtract(
@@ -19,31 +22,66 @@ def strip_filename(filename):
 def get_earlier_filename(filename):
     return '{0}_{1}.csv'.format(filename.split('_')[-2],int(strip_filename(filename))-1)
 
+def job_script(args):
+    # create the job script file, passed in command line params with -j flag
+    f = open(args.job_script, 'w')
+    for filename in os.listdir(args.base_in_dir):
+        infile = os.path.join(args.base_in_dir, filename)
+        outfile = os.path.join(args.base_out_dir, filename)
+        if int(strip_filename(filename)) == 0:
+            out = 'python3 {0} -l {1} -o {2)'.format(SCRIPT_DIR,infile,outfile)
+        else:
+            earlier_infile = os.path.join(args.indir,get_earlier_filename(filename))
+            out = 'python3 {0} -l {1} -o {2} -e {3}'.format(SCRIPT_DIR,infile,outfile,earlier_infile)
+        out = out + '\n'
+    print(out)
+    f.write(out)
+
 def main(args):
-    utils.log('found {0} files in {1}'.format(len(os.listdir(args.indir)),args.indir))
-    for i,filename in enumerate(os.listdir(args.indir)):
-        infile = os.path.join(args.indir, filename)
-        outfile = os.path.join(args.outdir, filename)
+    utils.log('found {0} files in {1}'.format(len(os.listdir(args.base_in_dir)),args.base_in_dir))
+    for i,filename in enumerate(os.listdir(args.base_in_dir)):
+        infile = os.path.join(args.base_in_dir, filename)
+        outfile = os.path.join(args.base_out_dir, filename)
         later = pd.read_csv(infile)
         num = int(strip_filename(filename))
         if num == 0:
             utils.log('writing {0}'.format(outfile))
             later.to_csv(outfile)
         else:
-            earlier_infile = os.path.join(args.indir,get_earlier_filename(filename))
+            earlier_infile = os.path.join(args.base_in_dir,get_earlier_filename(filename))
             utils.log('subtracting [{0} - {1}]'.format(infile, earlier_infile))
             earlier = pd.read_csv(earlier_infile)
             result = subtract_dfs(earlier=earlier,
                                   later=later)
             utils.log('writing {0}'.format(outfile))
             result.to_csv(outfile)
-    utils.log('wrote {0} files to {1}'.format(i,args.outdir))
+    utils.log('wrote {0} files to {1}'.format(i,args.base_out_dir))
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='process wiki data')
-    parser.add_argument('-i', '--indir',
-                        help='path to directory containing combined (all language editions) edit counts thresholded by relative date')
-    parser.add_argument('-o', '--outdir',
+    parser.add_argument('-e', '--earlier',
+                        help='path to the earlier csv (to subtract)')
+    parser.add_argument('-l', '--later',
+                        help='path to the later csv (to subtract from)')
+    parser.add_argument('-o', '--outfile',
                         help='path to directory for output files')
+    parser.add_argument('-j', '--job_script',
+                        help='create a job script at the specified file path for use on hyak')
+    parser.add_argument('--base_in_dir',
+                        help='base input directory (use with --job_script)')
+    parser.add_argument('--base_out_dir',
+                        help='base output directory (use with --job_script)')
+    parser.add_argument('--iterative',
+                        help='perform iteratively on a single processor')
     args = parser.parse_args()
-    main(args)
+    if args.job_script:
+        job_script(args)
+    elif args.iterative:
+        main(args)
+    elif args.earlier:
+        later = pd.read_csv(args.later)
+        earlier = pd.read_csv(args.earlier)
+        df = subtract_dfs(earlier=earlier,later=later)
+        df.to_csv(args.outfile)
+    else:
+        pd.read_csv(args.later).to_csv(args.outfile)
