@@ -8,12 +8,20 @@ import argparse
 SCRIPT_DIR = os.path.abspath(__file__)
 
 def subtract_dfs(earlier,later):
-
+    # specify columns that will be subtracted
+    overlap_cols = ['len_1', 'len_0', 'no_revert_len_1', 'no_revert_len_0']
+    # set multi-index for both pages
     earlier = earlier.set_index(['page_id_1', 'lang'])
     later = later.set_index(['page_id_1', 'lang'])
-    result = later[['len_1', 'len_0', 'no_revert_len_1', 'no_revert_len_0', ]].subtract(
-        earlier[['len_1', 'len_0', 'no_revert_len_1', 'no_revert_len_0']])
+    # subtract earlier from later by multi-index
+    result = later[overlap_cols].subtract(earlier[overlap_cols])
+    # join meta data from later df
     result = result.join(later[['title', 'tds_1', 'tds_0', 'num_editors_1', 'num_editors_0', 'page_id_0']])
+    # drop all pages without titles
+    # pages without titles are talk pages that have been archived in the later dataset (and are therefore combined into the new page)
+    result = result.loc[result['title'].notnull()]
+    # join counts from later df with result df for rows that don't exist in earlier df
+    result = result.loc[result['len_1'].isnull()].drop(overlap_cols,axis=1).join(later[overlap_cols],how='inner')
     return result
 
 def strip_filename(filename):
@@ -82,6 +90,6 @@ if __name__ == "__main__":
         later = pd.read_csv(args.later)
         earlier = pd.read_csv(args.earlier)
         df = subtract_dfs(earlier=earlier,later=later)
-        df.to_csv(args.outfile)
+        df.to_csv(args.outfile,na_rep='NaN',encoding='utf-8',index=False)
     else:
-        pd.read_csv(args.later).to_csv(args.outfile)
+        pd.read_csv(args.later).to_csv(args.outfile,na_rep='NaN',encoding='utf-8',index=False)
