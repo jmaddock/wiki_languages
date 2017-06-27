@@ -25,14 +25,15 @@ def get_earlier_filename(filename):
 def job_script(args):
     # create the job script file, passed in command line params with -j flag
     f = open(args.job_script, 'w')
+    out = ''
     for filename in os.listdir(args.base_in_dir):
         infile = os.path.join(args.base_in_dir, filename)
         outfile = os.path.join(args.base_out_dir, filename)
         if int(strip_filename(filename)) == 0:
-            out = 'python3 {0} -l {1} -o {2)'.format(SCRIPT_DIR,infile,outfile)
+            out = out + 'python3 {0} -l {1} -o {2}'.format(SCRIPT_DIR,infile,outfile)
         else:
-            earlier_infile = os.path.join(args.indir,get_earlier_filename(filename))
-            out = 'python3 {0} -l {1} -o {2} -e {3}'.format(SCRIPT_DIR,infile,outfile,earlier_infile)
+            earlier_infile = os.path.join(args.base_in_dir,get_earlier_filename(filename))
+            out = out + 'python3 {0} -l {1} -o {2} -e {3}'.format(SCRIPT_DIR,infile,outfile,earlier_infile)
         out = out + '\n'
     print(out)
     f.write(out)

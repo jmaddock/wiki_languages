@@ -1,13 +1,6 @@
-ar
-he
-it
-ja
-nl
-ca
-cs
-de
 en
+de
 es
-fa
-fi
 fr
+nl
+pl
