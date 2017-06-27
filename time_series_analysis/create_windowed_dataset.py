@@ -21,7 +21,7 @@ def subtract_dfs(earlier,later):
     # pages without titles are talk pages that have been archived in the later dataset (and are therefore combined into the new page)
     result = result.loc[result['title'].notnull()]
     # join counts from later df with result df for rows that don't exist in earlier df
-    result.loc[result.loc[result['len_1'].isnull()] = result.loc[result.loc[result['len_1'].isnull()].drop(overlap_cols,axis=1).join(later[overlap_cols],how='inner')
+    result.loc[result['len_1'].isnull()] = result.loc[result['len_1'].isnull()].drop(overlap_cols,axis=1).join(later[overlap_cols],how='inner')
     return result
 
 def strip_filename(filename):
