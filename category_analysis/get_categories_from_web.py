@@ -104,6 +104,7 @@ def main(lang_list=None,depth=1,min_articles=0):
             category_name = llink_list[llink][lang].split(':')[-1]
             category_id = get_article_info(lang, llink_list[llink][lang])['query']['pages'][0]['pageid']
             num_articles = -1
+            curr_depth = depth
             while num_articles <= min_articles:
                 utils.log('traverse depth: {0}'.format(depth))
                 article_list = get_articles(lang=lang,
@@ -111,7 +112,7 @@ def main(lang_list=None,depth=1,min_articles=0):
                                             depth=depth)
                 num_articles = len(article_list['*'][0]['a']['*'])
                 utils.log('found {0} articles'.format(num_articles))
-                depth += 1
+                curr_depth += 1
             count = 0
             for article in article_list['*'][0]['a']['*']:
                 if article['namespace'] == 0:
