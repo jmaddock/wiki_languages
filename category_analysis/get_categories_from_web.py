@@ -81,7 +81,7 @@ def get_article_info(lang,page_name):
     r = requests.get(base_url, params=params).json()
     return r
 
-    def main(lang_list=None,depth=1,min_articles=0):
+def main(lang_list=None,depth=1,min_articles=0):
     if lang_list:
         lang_list = read_lang_list_file(lang_list)
     r = get_en_categories()
