@@ -81,7 +81,7 @@ def get_article_info(lang,page_name):
     r = requests.get(base_url, params=params).json()
     return r
 
-def main(lang_list=None,depth=1,min_articles=0):
+def main(lang_list=None,depth=1):
     if lang_list:
         lang_list = read_lang_list_file(lang_list)
     r = get_en_categories()
@@ -103,16 +103,9 @@ def main(lang_list=None,depth=1,min_articles=0):
         for lang in llink_list[llink]:
             category_name = llink_list[llink][lang].split(':')[-1]
             category_id = get_article_info(lang, llink_list[llink][lang])['query']['pages'][0]['pageid']
-            num_articles = -1
-            curr_depth = depth
-            while num_articles <= min_articles:
-                utils.log('traverse depth: {0}'.format(depth))
-                article_list = get_articles(lang=lang,
-                                            category=category_name,
-                                            depth=depth)
-                num_articles = len(article_list['*'][0]['a']['*'])
-                utils.log('found {0} articles'.format(num_articles))
-                curr_depth += 1
+            article_list = get_articles(lang=lang,
+                                        category=category_name,
+                                        depth=depth)
             count = 0
             for article in article_list['*'][0]['a']['*']:
                 if article['namespace'] == 0:
@@ -127,8 +120,8 @@ def main(lang_list=None,depth=1,min_articles=0):
                     }]))
                     count += 1
                 if count % 1000 == 0 and count != 0:
-                    utils.log('processed {0} of {1} articles'.format(count,num_articles))
-            utils.log('processed {0} of {1} articles'.format(count,num_articles))
+                    utils.log('processed {0} articles'.format(count))
+            utils.log('processed {0} articles'.format(count))
     utils.log('found {0} articles'.format(len(result)))
     return result
 
@@ -141,8 +134,6 @@ if __name__ == "__main__":
     parser.add_argument('-d', '--depth',
                         default=1,
                         help='depth of the category structure to traverse')
-    parser.add_argument('--min',
-                        help='the minimum number of articles per category')
     args = parser.parse_args()
     result = main(lang_list=args.lang_list,
                   depth=args.depth)
