@@ -106,6 +106,7 @@ def main(lang_list=None,depth=1):
             article_list = get_articles(lang=lang,
                                         category=category_name,
                                         depth=args.depth)
+            count = 0
             for article in article_list['*'][0]['a']['*']:
                 if article['namespace'] == 0:
                     result = result.append(pd.DataFrame([{
@@ -117,6 +118,10 @@ def main(lang_list=None,depth=1):
                         'en_category_title': llink_list[llink]['en'],
                         'en_category_id': llink
                     }]))
+                    count += 1
+                if count % 1000 == 0 and count != 0:
+                    utils.log('processed {0} articles'.format(count))
+            utils.log('processed {0} articles'.format(count))
     utils.log('found {0} articles'.format(len(result)))
     return result
 

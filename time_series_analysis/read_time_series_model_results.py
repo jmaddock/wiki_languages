@@ -35,10 +35,11 @@ class ModelReader(object):
         for model_file in self.model_file_list:
             # read simulated model file
             input_df = pd.read_table(model_file,header=1,index_col=None,na_values='.')
-            if self.simulated_statistic in input_df.index:
+            if self.simulated_statistic in input_df['Unnamed: 0'].values:
                 # get the row that matches simulated statistic (probably b or s.e.)
                 input_df = input_df.loc[input_df['Unnamed: 0'] == self.simulated_statistic]
             else:
+                input_df = input_df.drop_duplicates(subset='Unnamed: 0')
                 input_df = input_df.set_index('Unnamed: 0')
                 input_df = input_df.transpose()
                 input_df = input_df[input_df.index == self.simulated_statistic]
