@@ -17,7 +17,7 @@ if __name__ == "__main__":
     parser.add_argument('-c', '--category_file',
                         required=True,
                         help='path to a file of categories')
-    parser.add_argument('o-', '--outfile',
+    parser.add_argument('-o', '--outfile',
                         required=True,
                         help='path to the output file')
     parser.add_argument('--limit_columns',
