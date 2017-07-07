@@ -21,16 +21,16 @@ encode en_category_title, generate(en_category_title2)
 
 // create full model using talk, article, and language vars
 // drop single outlier for en
-nbreg len_1 num_editors_1 talk_age_year len_0 article_age_year ib(freq).lang2 ib(freq).en_category_title2 if len_1 < 50000, robust
+nbreg len_1 num_editors_1 talk_age_year len_0 article_age_year ib(freq).lang2 if len_1 < 50000, robust
 
 // output the coeficient estimates with standard errors and confidence intervals
 matrix output = r(table)
-local output_path = "`output_dir'" + "talk_article_lang_model.tsv"
+local output_path = "`output_dir'" + "only_lang_model.tsv"
 estout m(output) using `output_path', replace label
 
 // get the language labels
 eststo
-local output_path = "`output_dir'" + "talk_article_lang_model_lablels.tsv"
+local output_path = "`output_dir'" + "only_lang_model_lablels.tsv"
 estout using `output_path', replace label
 
 // get the coeficient percent estimates and store them to a matrix
@@ -38,5 +38,27 @@ listcoef
 matrix output = r(table)
 listcoef, percent
 matrix output = output,r(table)
-local output_path = "`output_dir'" + "talk_article_lang_model_percents.tsv"
+local output_path = "`output_dir'" + "only_lang_model_percents.tsv"
+estout m(output) using `output_path', replace label
+
+// create full model using talk, article, and language vars
+// drop single outlier for en
+nbreg len_1 num_editors_1 talk_age_year len_0 article_age_year ib(freq).lang2 ib(freq).en_category_title2 if len_1 < 50000, robust
+
+// output the coeficient estimates with standard errors and confidence intervals
+matrix output = r(table)
+local output_path = "`output_dir'" + "category_lang_model.tsv"
+estout m(output) using `output_path', replace label
+
+// get the language labels
+eststo
+local output_path = "`output_dir'" + "category_lang_model_lablels.tsv"
+estout using `output_path', replace label
+
+// get the coeficient percent estimates and store them to a matrix
+listcoef
+matrix output = r(table)
+listcoef, percent
+matrix output = output,r(table)
+local output_path = "`output_dir'" + "category_lang_model_percents.tsv"
 estout m(output) using `output_path', replace label
