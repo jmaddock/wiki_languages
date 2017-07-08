@@ -33,6 +33,10 @@ eststo
 local output_path = "`output_dir'" + "only_lang_model_lablels.tsv"
 estout using `output_path', replace label
 
+// get BIC fit info
+estat ic
+matrix bic = r(S)
+
 // get the coeficient percent estimates and store them to a matrix
 listcoef
 matrix output = r(table)
@@ -54,6 +58,12 @@ estout m(output) using `output_path', replace label
 eststo
 local output_path = "`output_dir'" + "category_lang_model_lablels.tsv"
 estout using `output_path', replace label
+
+// get BIC fit info
+estat ic
+matrix bic = (bic \ r(S))
+local output_path = "`output_dir'" + "bic.tsv"
+estout m(bic) using `output_path', replace
 
 // get the coeficient percent estimates and store them to a matrix
 listcoef
