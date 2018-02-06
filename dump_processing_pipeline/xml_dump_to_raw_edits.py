@@ -34,7 +34,7 @@ class Single_Dump_Handler(object):
 
     def open_dump(self):
         utils.log('opening file: %s' % self.f_in)
-self.dump = xml_dump.Iterator.from_file(codecs.open(self.uncompressed,'r','utf-8'))
+        self.dump = xml_dump.Iterator.from_file(codecs.open(self.uncompressed,'r','utf-8'))
         return self.dump
 
     def decompress(self):

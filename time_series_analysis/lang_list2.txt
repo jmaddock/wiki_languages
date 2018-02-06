@@ -1,0 +1,9 @@
+ar
+nl
+ca
+cs
+de
+en
+es
+fa
+fi

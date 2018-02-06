@@ -1,4 +1,0 @@
-Extractors
-==========
-
-.. automodule:: wikiclass.extractors
