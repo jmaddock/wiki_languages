@@ -5,8 +5,8 @@ import delimited using `1'
 local output_dir = "`2'"
 
 // change time column to years
-gen talk_age = tds_1 / (60 * 60 * 24 * 365)
-gen article_age = tds_0 / (60 * 60 * 24 * 365)
+gen talk_age_year = tds_1 / (60 * 60 * 24 * 365)
+gen article_age_year = tds_0 / (60 * 60 * 24 * 365)
 
 // create all models
 // drop single outlier for en

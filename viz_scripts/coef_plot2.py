@@ -60,7 +60,7 @@ def graph_margins(infile,coef_type,group_by=None):
                  kind='bar',
                  legend=False,
                  title=None,
-                 figsize=(7,3))
+                 figsize=(9,3))
     ax.set_ylabel(ylabel)
     ax.set_xlabel("Language")
     fig = ax.get_figure()
