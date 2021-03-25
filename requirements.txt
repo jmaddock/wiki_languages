@@ -69,7 +69,7 @@ pytest==3.2.5
 python-dateutil==2.5.3
 pytz==2017.2
 pywikibase==0.0.5
-PyYAML==3.12
+PyYAML==5.4
 pyzmq==16.0.2
 qtconsole==4.2.1
 requests==2.18.4
